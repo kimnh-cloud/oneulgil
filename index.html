@@ -1,0 +1,1209 @@
+<title>오늘길</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap">
+<style>
+/* required styles */
+
+.leaflet-pane,
+.leaflet-tile,
+.leaflet-marker-icon,
+.leaflet-marker-shadow,
+.leaflet-tile-container,
+.leaflet-pane > svg,
+.leaflet-pane > canvas,
+.leaflet-zoom-box,
+.leaflet-image-layer,
+.leaflet-layer {
+	position: absolute;
+	left: 0;
+	top: 0;
+	}
+.leaflet-container {
+	overflow: hidden;
+	}
+.leaflet-tile,
+.leaflet-marker-icon,
+.leaflet-marker-shadow {
+	-webkit-user-select: none;
+	   -moz-user-select: none;
+	        user-select: none;
+	  -webkit-user-drag: none;
+	}
+/* Prevents IE11 from highlighting tiles in blue */
+.leaflet-tile::selection {
+	background: transparent;
+}
+/* Safari renders non-retina tile on retina better with this, but Chrome is worse */
+.leaflet-safari .leaflet-tile {
+	image-rendering: -webkit-optimize-contrast;
+	}
+/* hack that prevents hw layers "stretching" when loading new tiles */
+.leaflet-safari .leaflet-tile-container {
+	width: 1600px;
+	height: 1600px;
+	-webkit-transform-origin: 0 0;
+	}
+.leaflet-marker-icon,
+.leaflet-marker-shadow {
+	display: block;
+	}
+/* .leaflet-container svg: reset svg max-width decleration shipped in Joomla! (joomla.org) 3.x */
+/* .leaflet-container img: map is broken in FF if you have max-width: 100% on tiles */
+.leaflet-container .leaflet-overlay-pane svg {
+	max-width: none !important;
+	max-height: none !important;
+	}
+.leaflet-container .leaflet-marker-pane img,
+.leaflet-container .leaflet-shadow-pane img,
+.leaflet-container .leaflet-tile-pane img,
+.leaflet-container img.leaflet-image-layer,
+.leaflet-container .leaflet-tile {
+	max-width: none !important;
+	max-height: none !important;
+	width: auto;
+	padding: 0;
+	}
+
+.leaflet-container img.leaflet-tile {
+	/* See: https://bugs.chromium.org/p/chromium/issues/detail?id=600120 */
+	mix-blend-mode: plus-lighter;
+}
+
+.leaflet-container.leaflet-touch-zoom {
+	-ms-touch-action: pan-x pan-y;
+	touch-action: pan-x pan-y;
+	}
+.leaflet-container.leaflet-touch-drag {
+	-ms-touch-action: pinch-zoom;
+	/* Fallback for FF which doesn't support pinch-zoom */
+	touch-action: none;
+	touch-action: pinch-zoom;
+}
+.leaflet-container.leaflet-touch-drag.leaflet-touch-zoom {
+	-ms-touch-action: none;
+	touch-action: none;
+}
+.leaflet-container {
+	-webkit-tap-highlight-color: transparent;
+}
+.leaflet-container a {
+	-webkit-tap-highlight-color: rgba(51, 181, 229, 0.4);
+}
+.leaflet-tile {
+	filter: inherit;
+	visibility: hidden;
+	}
+.leaflet-tile-loaded {
+	visibility: inherit;
+	}
+.leaflet-zoom-box {
+	width: 0;
+	height: 0;
+	-moz-box-sizing: border-box;
+	     box-sizing: border-box;
+	z-index: 800;
+	}
+/* workaround for https://bugzilla.mozilla.org/show_bug.cgi?id=888319 */
+.leaflet-overlay-pane svg {
+	-moz-user-select: none;
+	}
+
+.leaflet-pane         { z-index: 400; }
+
+.leaflet-tile-pane    { z-index: 200; }
+.leaflet-overlay-pane { z-index: 400; }
+.leaflet-shadow-pane  { z-index: 500; }
+.leaflet-marker-pane  { z-index: 600; }
+.leaflet-tooltip-pane   { z-index: 650; }
+.leaflet-popup-pane   { z-index: 700; }
+
+.leaflet-map-pane canvas { z-index: 100; }
+.leaflet-map-pane svg    { z-index: 200; }
+
+.leaflet-vml-shape {
+	width: 1px;
+	height: 1px;
+	}
+.lvml {
+	behavior: url(#default#VML);
+	display: inline-block;
+	position: absolute;
+	}
+
+
+/* control positioning */
+
+.leaflet-control {
+	position: relative;
+	z-index: 800;
+	pointer-events: visiblePainted; /* IE 9-10 doesn't have auto */
+	pointer-events: auto;
+	}
+.leaflet-top,
+.leaflet-bottom {
+	position: absolute;
+	z-index: 1000;
+	pointer-events: none;
+	}
+.leaflet-top {
+	top: 0;
+	}
+.leaflet-right {
+	right: 0;
+	}
+.leaflet-bottom {
+	bottom: 0;
+	}
+.leaflet-left {
+	left: 0;
+	}
+.leaflet-control {
+	float: left;
+	clear: both;
+	}
+.leaflet-right .leaflet-control {
+	float: right;
+	}
+.leaflet-top .leaflet-control {
+	margin-top: 10px;
+	}
+.leaflet-bottom .leaflet-control {
+	margin-bottom: 10px;
+	}
+.leaflet-left .leaflet-control {
+	margin-left: 10px;
+	}
+.leaflet-right .leaflet-control {
+	margin-right: 10px;
+	}
+
+
+/* zoom and fade animations */
+
+.leaflet-fade-anim .leaflet-popup {
+	opacity: 0;
+	-webkit-transition: opacity 0.2s linear;
+	   -moz-transition: opacity 0.2s linear;
+	        transition: opacity 0.2s linear;
+	}
+.leaflet-fade-anim .leaflet-map-pane .leaflet-popup {
+	opacity: 1;
+	}
+.leaflet-zoom-animated {
+	-webkit-transform-origin: 0 0;
+	    -ms-transform-origin: 0 0;
+	        transform-origin: 0 0;
+	}
+svg.leaflet-zoom-animated {
+	will-change: transform;
+}
+
+.leaflet-zoom-anim .leaflet-zoom-animated {
+	-webkit-transition: -webkit-transform 0.25s cubic-bezier(0,0,0.25,1);
+	   -moz-transition:    -moz-transform 0.25s cubic-bezier(0,0,0.25,1);
+	        transition:         transform 0.25s cubic-bezier(0,0,0.25,1);
+	}
+.leaflet-zoom-anim .leaflet-tile,
+.leaflet-pan-anim .leaflet-tile {
+	-webkit-transition: none;
+	   -moz-transition: none;
+	        transition: none;
+	}
+
+.leaflet-zoom-anim .leaflet-zoom-hide {
+	visibility: hidden;
+	}
+
+
+/* cursors */
+
+.leaflet-interactive {
+	cursor: pointer;
+	}
+.leaflet-grab {
+	cursor: -webkit-grab;
+	cursor:    -moz-grab;
+	cursor:         grab;
+	}
+.leaflet-crosshair,
+.leaflet-crosshair .leaflet-interactive {
+	cursor: crosshair;
+	}
+.leaflet-popup-pane,
+.leaflet-control {
+	cursor: auto;
+	}
+.leaflet-dragging .leaflet-grab,
+.leaflet-dragging .leaflet-grab .leaflet-interactive,
+.leaflet-dragging .leaflet-marker-draggable {
+	cursor: move;
+	cursor: -webkit-grabbing;
+	cursor:    -moz-grabbing;
+	cursor:         grabbing;
+	}
+
+/* marker & overlays interactivity */
+.leaflet-marker-icon,
+.leaflet-marker-shadow,
+.leaflet-image-layer,
+.leaflet-pane > svg path,
+.leaflet-tile-container {
+	pointer-events: none;
+	}
+
+.leaflet-marker-icon.leaflet-interactive,
+.leaflet-image-layer.leaflet-interactive,
+.leaflet-pane > svg path.leaflet-interactive,
+svg.leaflet-image-layer.leaflet-interactive path {
+	pointer-events: visiblePainted; /* IE 9-10 doesn't have auto */
+	pointer-events: auto;
+	}
+
+/* visual tweaks */
+
+.leaflet-container {
+	background: #ddd;
+	outline-offset: 1px;
+	}
+.leaflet-container a {
+	color: #0078A8;
+	}
+.leaflet-zoom-box {
+	border: 2px dotted #38f;
+	background: rgba(255,255,255,0.5);
+	}
+
+
+/* general typography */
+.leaflet-container {
+	font-family: "Helvetica Neue", Arial, Helvetica, sans-serif;
+	font-size: 12px;
+	font-size: 0.75rem;
+	line-height: 1.5;
+	}
+
+
+/* general toolbar styles */
+
+.leaflet-bar {
+	box-shadow: 0 1px 5px rgba(0,0,0,0.65);
+	border-radius: 4px;
+	}
+.leaflet-bar a {
+	background-color: #fff;
+	border-bottom: 1px solid #ccc;
+	width: 26px;
+	height: 26px;
+	line-height: 26px;
+	display: block;
+	text-align: center;
+	text-decoration: none;
+	color: black;
+	}
+.leaflet-bar a,
+.leaflet-control-layers-toggle {
+	background-position: 50% 50%;
+	background-repeat: no-repeat;
+	display: block;
+	}
+.leaflet-bar a:hover,
+.leaflet-bar a:focus {
+	background-color: #f4f4f4;
+	}
+.leaflet-bar a:first-child {
+	border-top-left-radius: 4px;
+	border-top-right-radius: 4px;
+	}
+.leaflet-bar a:last-child {
+	border-bottom-left-radius: 4px;
+	border-bottom-right-radius: 4px;
+	border-bottom: none;
+	}
+.leaflet-bar a.leaflet-disabled {
+	cursor: default;
+	background-color: #f4f4f4;
+	color: #bbb;
+	}
+
+.leaflet-touch .leaflet-bar a {
+	width: 30px;
+	height: 30px;
+	line-height: 30px;
+	}
+.leaflet-touch .leaflet-bar a:first-child {
+	border-top-left-radius: 2px;
+	border-top-right-radius: 2px;
+	}
+.leaflet-touch .leaflet-bar a:last-child {
+	border-bottom-left-radius: 2px;
+	border-bottom-right-radius: 2px;
+	}
+
+/* zoom control */
+
+.leaflet-control-zoom-in,
+.leaflet-control-zoom-out {
+	font: bold 18px 'Lucida Console', Monaco, monospace;
+	text-indent: 1px;
+	}
+
+.leaflet-touch .leaflet-control-zoom-in, .leaflet-touch .leaflet-control-zoom-out  {
+	font-size: 22px;
+	}
+
+
+/* layers control */
+
+.leaflet-control-layers {
+	box-shadow: 0 1px 5px rgba(0,0,0,0.4);
+	background: #fff;
+	border-radius: 5px;
+	}
+.leaflet-control-layers-toggle {
+	background-image: url(images/layers.png);
+	width: 36px;
+	height: 36px;
+	}
+.leaflet-retina .leaflet-control-layers-toggle {
+	background-image: url(images/layers-2x.png);
+	background-size: 26px 26px;
+	}
+.leaflet-touch .leaflet-control-layers-toggle {
+	width: 44px;
+	height: 44px;
+	}
+.leaflet-control-layers .leaflet-control-layers-list,
+.leaflet-control-layers-expanded .leaflet-control-layers-toggle {
+	display: none;
+	}
+.leaflet-control-layers-expanded .leaflet-control-layers-list {
+	display: block;
+	position: relative;
+	}
+.leaflet-control-layers-expanded {
+	padding: 6px 10px 6px 6px;
+	color: #333;
+	background: #fff;
+	}
+.leaflet-control-layers-scrollbar {
+	overflow-y: scroll;
+	overflow-x: hidden;
+	padding-right: 5px;
+	}
+.leaflet-control-layers-selector {
+	margin-top: 2px;
+	position: relative;
+	top: 1px;
+	}
+.leaflet-control-layers label {
+	display: block;
+	font-size: 13px;
+	font-size: 1.08333em;
+	}
+.leaflet-control-layers-separator {
+	height: 0;
+	border-top: 1px solid #ddd;
+	margin: 5px -10px 5px -6px;
+	}
+
+/* Default icon URLs */
+.leaflet-default-icon-path { /* used only in path-guessing heuristic, see L.Icon.Default */
+	background-image: url(images/marker-icon.png);
+	}
+
+
+/* attribution and scale controls */
+
+.leaflet-container .leaflet-control-attribution {
+	background: #fff;
+	background: rgba(255, 255, 255, 0.8);
+	margin: 0;
+	}
+.leaflet-control-attribution,
+.leaflet-control-scale-line {
+	padding: 0 5px;
+	color: #333;
+	line-height: 1.4;
+	}
+.leaflet-control-attribution a {
+	text-decoration: none;
+	}
+.leaflet-control-attribution a:hover,
+.leaflet-control-attribution a:focus {
+	text-decoration: underline;
+	}
+.leaflet-attribution-flag {
+	display: inline !important;
+	vertical-align: baseline !important;
+	width: 1em;
+	height: 0.6669em;
+	}
+.leaflet-left .leaflet-control-scale {
+	margin-left: 5px;
+	}
+.leaflet-bottom .leaflet-control-scale {
+	margin-bottom: 5px;
+	}
+.leaflet-control-scale-line {
+	border: 2px solid #777;
+	border-top: none;
+	line-height: 1.1;
+	padding: 2px 5px 1px;
+	white-space: nowrap;
+	-moz-box-sizing: border-box;
+	     box-sizing: border-box;
+	background: rgba(255, 255, 255, 0.8);
+	text-shadow: 1px 1px #fff;
+	}
+.leaflet-control-scale-line:not(:first-child) {
+	border-top: 2px solid #777;
+	border-bottom: none;
+	margin-top: -2px;
+	}
+.leaflet-control-scale-line:not(:first-child):not(:last-child) {
+	border-bottom: 2px solid #777;
+	}
+
+.leaflet-touch .leaflet-control-attribution,
+.leaflet-touch .leaflet-control-layers,
+.leaflet-touch .leaflet-bar {
+	box-shadow: none;
+	}
+.leaflet-touch .leaflet-control-layers,
+.leaflet-touch .leaflet-bar {
+	border: 2px solid rgba(0,0,0,0.2);
+	background-clip: padding-box;
+	}
+
+
+/* popup */
+
+.leaflet-popup {
+	position: absolute;
+	text-align: center;
+	margin-bottom: 20px;
+	}
+.leaflet-popup-content-wrapper {
+	padding: 1px;
+	text-align: left;
+	border-radius: 12px;
+	}
+.leaflet-popup-content {
+	margin: 13px 24px 13px 20px;
+	line-height: 1.3;
+	font-size: 13px;
+	font-size: 1.08333em;
+	min-height: 1px;
+	}
+.leaflet-popup-content p {
+	margin: 17px 0;
+	margin: 1.3em 0;
+	}
+.leaflet-popup-tip-container {
+	width: 40px;
+	height: 20px;
+	position: absolute;
+	left: 50%;
+	margin-top: -1px;
+	margin-left: -20px;
+	overflow: hidden;
+	pointer-events: none;
+	}
+.leaflet-popup-tip {
+	width: 17px;
+	height: 17px;
+	padding: 1px;
+
+	margin: -10px auto 0;
+	pointer-events: auto;
+
+	-webkit-transform: rotate(45deg);
+	   -moz-transform: rotate(45deg);
+	    -ms-transform: rotate(45deg);
+	        transform: rotate(45deg);
+	}
+.leaflet-popup-content-wrapper,
+.leaflet-popup-tip {
+	background: white;
+	color: #333;
+	box-shadow: 0 3px 14px rgba(0,0,0,0.4);
+	}
+.leaflet-container a.leaflet-popup-close-button {
+	position: absolute;
+	top: 0;
+	right: 0;
+	border: none;
+	text-align: center;
+	width: 24px;
+	height: 24px;
+	font: 16px/24px Tahoma, Verdana, sans-serif;
+	color: #757575;
+	text-decoration: none;
+	background: transparent;
+	}
+.leaflet-container a.leaflet-popup-close-button:hover,
+.leaflet-container a.leaflet-popup-close-button:focus {
+	color: #585858;
+	}
+.leaflet-popup-scrolled {
+	overflow: auto;
+	}
+
+.leaflet-oldie .leaflet-popup-content-wrapper {
+	-ms-zoom: 1;
+	}
+.leaflet-oldie .leaflet-popup-tip {
+	width: 24px;
+	margin: 0 auto;
+
+	-ms-filter: "progid:DXImageTransform.Microsoft.Matrix(M11=0.70710678, M12=0.70710678, M21=-0.70710678, M22=0.70710678)";
+	filter: progid:DXImageTransform.Microsoft.Matrix(M11=0.70710678, M12=0.70710678, M21=-0.70710678, M22=0.70710678);
+	}
+
+.leaflet-oldie .leaflet-control-zoom,
+.leaflet-oldie .leaflet-control-layers,
+.leaflet-oldie .leaflet-popup-content-wrapper,
+.leaflet-oldie .leaflet-popup-tip {
+	border: 1px solid #999;
+	}
+
+
+/* div icon */
+
+.leaflet-div-icon {
+	background: #fff;
+	border: 1px solid #666;
+	}
+
+
+/* Tooltip */
+/* Base styles for the element that has a tooltip */
+.leaflet-tooltip {
+	position: absolute;
+	padding: 6px;
+	background-color: #fff;
+	border: 1px solid #fff;
+	border-radius: 3px;
+	color: #222;
+	white-space: nowrap;
+	-webkit-user-select: none;
+	-moz-user-select: none;
+	-ms-user-select: none;
+	user-select: none;
+	pointer-events: none;
+	box-shadow: 0 1px 3px rgba(0,0,0,0.4);
+	}
+.leaflet-tooltip.leaflet-interactive {
+	cursor: pointer;
+	pointer-events: auto;
+	}
+.leaflet-tooltip-top:before,
+.leaflet-tooltip-bottom:before,
+.leaflet-tooltip-left:before,
+.leaflet-tooltip-right:before {
+	position: absolute;
+	pointer-events: none;
+	border: 6px solid transparent;
+	background: transparent;
+	content: "";
+	}
+
+/* Directions */
+
+.leaflet-tooltip-bottom {
+	margin-top: 6px;
+}
+.leaflet-tooltip-top {
+	margin-top: -6px;
+}
+.leaflet-tooltip-bottom:before,
+.leaflet-tooltip-top:before {
+	left: 50%;
+	margin-left: -6px;
+	}
+.leaflet-tooltip-top:before {
+	bottom: 0;
+	margin-bottom: -12px;
+	border-top-color: #fff;
+	}
+.leaflet-tooltip-bottom:before {
+	top: 0;
+	margin-top: -12px;
+	margin-left: -6px;
+	border-bottom-color: #fff;
+	}
+.leaflet-tooltip-left {
+	margin-left: -6px;
+}
+.leaflet-tooltip-right {
+	margin-left: 6px;
+}
+.leaflet-tooltip-left:before,
+.leaflet-tooltip-right:before {
+	top: 50%;
+	margin-top: -6px;
+	}
+.leaflet-tooltip-left:before {
+	right: 0;
+	margin-right: -12px;
+	border-left-color: #fff;
+	}
+.leaflet-tooltip-right:before {
+	left: 0;
+	margin-left: -12px;
+	border-right-color: #fff;
+	}
+
+/* Printing */
+
+@media print {
+	/* Prevent printers from removing background-images of controls. */
+	.leaflet-control {
+		-webkit-print-color-adjust: exact;
+		print-color-adjust: exact;
+		}
+	}
+
+/* Layout: map fills the screen; a control sheet sits left on desktop, below on phones. */
+:root{
+  --bg:#F3F4EF; --panel:#FFFFFF; --ink:#16212F; --ink-2:#4B5868; --line:#DADDD4;
+  --map:#ECEDE6; --street:#C4C8BC; --street-major:#A9AEA1;
+  --accent:#0F7A55; --accent-ink:#FFFFFF; --accent-soft:#E2F2EA;
+  --night:#C9781E; --night-soft:#FBEEDD;
+  --c1:#0F7A55; --c2:#2F64D6; --c3:#C2410C;
+  --good:#15803D; --warn:#B45309; --bad:#B91C1C;
+  --font:"IBM Plex Sans KR","Apple SD Gothic Neo","Malgun Gothic",sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,monospace;
+  --r:10px;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0F151D; --panel:#151E29; --ink:#E7ECF1; --ink-2:#9AA7B6; --line:#263241;
+  --map:#0B1118; --street:#2A3644; --street-major:#3A4859;
+  --accent:#3CC48F; --accent-ink:#06261A; --accent-soft:#12352A;
+  --night:#F0A548; --night-soft:#3A2A14;
+  --c1:#3CC48F; --c2:#6E9BFF; --c3:#FF8A4C;
+  --good:#4ADE80; --warn:#FBBF24; --bad:#F87171; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0F151D; --panel:#151E29; --ink:#E7ECF1; --ink-2:#9AA7B6; --line:#263241;
+  --map:#0B1118; --street:#2A3644; --street-major:#3A4859;
+  --accent:#3CC48F; --accent-ink:#06261A; --accent-soft:#12352A;
+  --night:#F0A548; --night-soft:#3A2A14;
+  --c1:#3CC48F; --c2:#6E9BFF; --c3:#FF8A4C;
+  --good:#4ADE80; --warn:#FBBF24; --bad:#F87171; color-scheme:dark}
+html,body{height:100%}
+body{background:var(--bg);color:var(--ink);font-family:var(--font);font-size:14px;line-height:1.5}
+.app{height:100%;display:grid;grid-template-columns:400px 1fr}
+.side{display:flex;flex-direction:column;min-width:0;min-height:0;background:var(--panel);border-right:1px solid var(--line)}
+.side-scroll{overflow-y:auto;flex:1;padding-block:20px 28px;padding-left:max(20px,env(safe-area-inset-left,0px));padding-right:20px;display:flex;flex-direction:column;gap:20px}
+header.brand{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.brand h1{margin:0;font-size:26px;font-weight:700;letter-spacing:-0.02em}
+.brand p{margin:0;color:var(--ink-2);font-size:13px}
+.demo-tag{font-size:11px;font-weight:600;letter-spacing:.06em;color:var(--ink-2);border:1px solid var(--line);border-radius:999px;padding:1px 8px}
+.ask{display:flex;flex-direction:column;gap:8px}
+.ask label,.group>label,.group .label{font-size:12px;font-weight:600;letter-spacing:.04em;color:var(--ink-2)}
+.ask-row{display:flex;gap:8px}
+.ask input{flex:1;min-width:0;font:inherit;font-size:15px;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:var(--r);padding:10px 12px}
+.ask input:focus-visible,button:focus-visible,select:focus-visible,input[type=range]:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.hint{font-size:12px;color:var(--ink-2)}
+.parsed{display:flex;flex-wrap:wrap;gap:6px;min-height:0}
+.parsed span{font-size:12px;background:var(--accent-soft);color:var(--ink);border-radius:999px;padding:2px 9px}
+.group{display:flex;flex-direction:column;gap:8px}
+.seg{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.seg.three{grid-template-columns:repeat(3,1fr)}
+.seg button{font:inherit;font-size:13px;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:var(--r);padding:8px 4px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:1px;line-height:1.3}
+.seg button small{font-size:11px;color:var(--ink-2)}
+.seg button[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.seg button[aria-pressed="true"] small{color:var(--accent-ink);opacity:.85}
+.slider-row{display:flex;align-items:center;gap:12px}
+.slider-row input[type=range]{flex:1;accent-color:var(--accent)}
+.val{font-family:var(--mono);font-variant-numeric:tabular-nums;font-weight:600;min-width:84px;text-align:right}
+.time-note{font-size:12px;border-radius:8px;padding:6px 10px;background:var(--bg);color:var(--ink-2)}
+.time-note.night{background:var(--night-soft);color:var(--ink)}
+.time-note b{color:var(--night)}
+.start-row{display:flex;gap:8px;align-items:center}
+.start-row select{flex:1;min-width:0;font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:var(--r);padding:8px 10px}
+.go{font:inherit;font-size:16px;font-weight:700;background:var(--accent);color:var(--accent-ink);border:0;border-radius:var(--r);padding:13px;cursor:pointer}
+.go:disabled{opacity:.6;cursor:wait}
+.results{display:flex;flex-direction:column;gap:10px}
+.course{border:1px solid var(--line);border-radius:var(--r);padding:12px 14px;display:grid;grid-template-columns:auto 1fr auto;gap:4px 12px;align-items:center;cursor:pointer;background:var(--panel);text-align:left;font:inherit;color:inherit;width:100%}
+.course[aria-pressed="true"]{border-color:var(--cc);box-shadow:inset 4px 0 0 var(--cc)}
+.swatch{width:12px;height:12px;border-radius:50%;background:var(--cc)}
+.course h3{margin:0;font-size:15px;font-weight:700}
+.course .big{font-family:var(--mono);font-variant-numeric:tabular-nums;font-weight:600;font-size:15px;white-space:nowrap}
+.course .facts{grid-column:2/4;display:flex;flex-wrap:wrap;gap:4px 12px;font-size:12px;color:var(--ink-2)}
+.course .facts b{font-family:var(--mono);font-weight:600;color:var(--ink)}
+.chip{font-size:11px;font-weight:600;border-radius:999px;padding:1px 8px;border:1px solid currentColor}
+.chip.ok{color:var(--good)} .chip.warn{color:var(--warn)}
+.empty{font-size:13px;color:var(--ink-2);border:1px dashed var(--line);border-radius:var(--r);padding:14px}
+.how{font-size:12px;color:var(--ink-2);border-top:1px solid var(--line);padding-top:14px;display:flex;flex-direction:column;gap:6px}
+.how p{margin:0}
+.mapwrap{position:relative;min-width:0;min-height:0}
+#map{position:absolute;inset:0;background:var(--map)}
+.leaflet-container{background:var(--map);font-family:var(--font)}
+.layer-switch{position:absolute;z-index:500;top:calc(12px + env(safe-area-inset-top,0px));right:max(12px,env(safe-area-inset-right,0px));display:flex;background:var(--panel);border:1px solid var(--line);border-radius:999px;padding:3px;gap:2px;box-shadow:0 2px 8px rgba(0,0,0,.12)}
+.layer-switch button{font:inherit;font-size:12px;color:var(--ink-2);background:transparent;border:0;border-radius:999px;padding:5px 11px;cursor:pointer}
+.layer-switch button[aria-pressed="true"]{background:var(--ink);color:var(--panel)}
+.legend{position:absolute;z-index:500;left:12px;bottom:calc(12px + env(safe-area-inset-bottom,0px));background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:6px 10px;font-size:11px;color:var(--ink-2);display:flex;align-items:center;gap:8px}
+.legend .bar{width:90px;height:6px;border-radius:3px;background:linear-gradient(90deg,#B91C1C,#E5B23A,#15803D)}
+.credit{position:absolute;z-index:500;right:max(8px,env(safe-area-inset-right,0px));bottom:calc(6px + env(safe-area-inset-bottom,0px));font-size:10px;color:var(--ink-2);background:var(--panel);opacity:.9;padding:1px 6px;border-radius:4px}
+.profile{grid-column:1/4;width:100%;height:46px;display:block}
+.profile .area{fill:var(--accent-soft)}
+.profile .ln{fill:none;stroke:var(--cc);stroke-width:1.5}
+.profile text{font-size:10px;fill:var(--ink-2);font-family:var(--mono)}
+.walk-btn{font:inherit;font-size:12px;font-weight:600;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:999px;padding:4px 12px;cursor:pointer;justify-self:start}
+.loading[hidden]{display:none}
+.loading{position:absolute;inset:0;display:grid;place-items:center;z-index:600;background:var(--map);color:var(--ink-2);font-size:13px}
+@media (max-width:820px){
+  .app{grid-template-columns:1fr;grid-template-rows:52vh 1fr}
+  .mapwrap{order:-1}
+  .side{border-right:0;border-top:1px solid var(--line)}
+  .side-scroll{padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+
+<div class="app">
+  <aside class="side">
+    <div class="side-scroll">
+      <header class="brand">
+        <h1>오늘길</h1><span class="demo-tag">DEMO · 서울 강남 양재천 일대</span>
+        <p>오늘 어디를, 어떻게 걸을지. 조건만 고르면 집 앞에서 출발해 돌아오는 코스를 만들어요.</p>
+      </header>
+
+      <div class="ask">
+        <label for="nl">말로 요청하기</label>
+        <div class="ask-row">
+          <input id="nl" type="text" value="언덕 없이 편한 길로 30분 걷기" autocomplete="off">
+        </div>
+        <div class="parsed" id="parsed"></div>
+        <span class="hint">데모에서는 키워드로 해석해요. 예: "밤이라 밝은 길로 30분", "3,200보 남았어", "언덕 있는 5km 러닝"</span>
+      </div>
+
+      <div class="group">
+        <span class="label" id="lbl-mode">모드</span>
+        <div class="seg" role="group" aria-labelledby="lbl-mode" id="mode">
+          <button data-v="safe" aria-pressed="false">안심<small>밝은 큰길</small></button>
+          <button data-v="easy" aria-pressed="false">편안<small>계단·언덕 없이</small></button>
+          <button data-v="hard" aria-pressed="false">도전<small>운동 강도</small></button>
+          <button data-v="daily" aria-pressed="true">일상<small>균형</small></button>
+        </div>
+      </div>
+
+      <div class="group">
+        <span class="label" id="lbl-goal">목표</span>
+        <div class="seg three" role="group" aria-labelledby="lbl-goal" id="goal">
+          <button data-v="min" aria-pressed="true">시간</button>
+          <button data-v="steps" aria-pressed="false">걸음 수</button>
+          <button data-v="km" aria-pressed="false">거리</button>
+        </div>
+        <div class="slider-row">
+          <input id="amount" type="range" min="10" max="60" step="5" value="30" aria-label="목표 크기">
+          <span class="val" id="amount-val">30분</span>
+        </div>
+        <div class="seg three" role="group" aria-label="활동" id="act">
+          <button data-v="walk" aria-pressed="true">걷기</button>
+          <button data-v="run" aria-pressed="false">달리기</button>
+          <button data-v="slow" aria-pressed="false">천천히</button>
+        </div>
+      </div>
+
+      <div class="group">
+        <label for="hour">출발 시각</label>
+        <div class="slider-row">
+          <input id="hour" type="range" min="5" max="23" step="1" value="17">
+          <span class="val" id="hour-val">17:00</span>
+        </div>
+        <div class="time-note" id="time-note"></div>
+      </div>
+
+      <div class="group">
+        <label for="start">출발점</label>
+        <div class="start-row"><select id="start"></select></div>
+        <span class="hint">지도를 눌러 출발점을 바꿀 수도 있어요.</span>
+      </div>
+
+      <button class="go" id="go">코스 만들기</button>
+
+      <div class="results" id="results" aria-live="polite">
+        <div class="empty">코스를 만드는 중이에요…</div>
+      </div>
+
+      <div class="how">
+        <p><b>어떻게 고르나요?</b> 대치·도곡·개포 일대 길 2,100여 개에 환경·안전·접근성·소음 회피·운동 강도 점수를 매기고, 고른 모드와 출발 시각에 따라 가중치를 다르게 합산해 점수가 높은 길 위주로 돌아오는 코스를 찾아요. 21시 이후에는 안전 가중치가 자동으로 올라가고 어두운 골목을 피해요.</p>
+        <p><b>오르막·내리막</b> 고도 타일로 길마다 경사를 계산해요. 편안 모드는 경사 8%가 넘는 길을 빼고, 도전 모드는 언덕을 일부러 넣어요. 같은 코스라도 오르막이 덜 가파른 방향으로 돌도록 방향을 정해요.</p>
+        <p>데이터: OpenStreetMap 도로망·시설, 서울시 가로등 위치, 강남구 보안등(지번 주소를 좌표로 변환), Mapzen Terrain Tiles 고도. 보안등 좌표는 필지 기준이라 실제 위치와 수십 미터 차이가 날 수 있어요.</p>
+      </div>
+    </div>
+  </aside>
+
+  <main class="mapwrap">
+    <div id="map" role="application" aria-label="코스 지도"></div>
+    <div class="layer-switch" role="group" aria-label="지도 색상">
+      <button data-v="plain" aria-pressed="true">기본</button>
+      <button data-v="lit" aria-pressed="false">조명</button>
+      <button data-v="access" aria-pressed="false">접근성</button>
+      <button data-v="slope" aria-pressed="false">경사</button>
+    </div>
+    <div class="legend" id="legend" hidden><span id="lg-lo">낮음</span><span class="bar"></span><span id="lg-hi">높음</span></div>
+    <div class="credit">© OpenStreetMap contributors · 고도 Mapzen Terrain Tiles</div>
+    <div class="loading" id="loading">지도 데이터를 불러오는 중…</div>
+  </main>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
+<script>
+(() => {
+// ---------- 설정 (시뮬레이션 코드 config.py와 같은 값) ----------
+const MODES = {
+  safe:  {name:"안심", w:{env:.15,int:0,sens:.10,safe:.60,acc:.10}},
+  easy:  {name:"편안", w:{env:.20,int:0,sens:.10,safe:.15,acc:.45}, elder:true},
+  hard:  {name:"도전", w:{env:.15,int:.50,sens:.10,safe:.10,acc:.10}},
+  daily: {name:"일상", w:{env:.2,int:.2,sens:.2,safe:.2,acc:.2}},
+};
+const ACT = {walk:{name:"걷기",mpm:75,stride:.70}, run:{name:"달리기",mpm:150,stride:1.0}, slow:{name:"천천히",mpm:55,stride:.60}};
+const LAMBDA = 2, RETURN_PEN = 3, ALLEY_PEN = 2.5, N_CAND = 14, TOL = .05;
+const state = {mode:"daily", goal:"min", act:"walk", amount:30, hour:17, start:null, courses:[], sel:0, layer:"plain"};
+
+const $ = s => document.querySelector(s);
+const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+
+// ---------- 데이터 ----------
+let G, adj, map, streetLayer, routeLayers = [], startMarker, walker;
+fetch("graph.json").then(r => r.json()).then(init).catch(() => {
+  $("#loading").textContent = "지도 데이터를 불러오지 못했어요. 새로고침해 주세요.";
+});
+
+function init(data){
+  G = data;
+  const n = G.nodes.length;
+  adj = Array.from({length:n}, () => []);
+  G.edges.forEach((e,i) => adj[e[0]].push(i));
+  // 출발점 목록
+  const sel = $("#start");
+  G.places.forEach((p,i) => { const o = document.createElement("option"); o.value = i; o.textContent = p.name; sel.appendChild(o); });
+  const custom = document.createElement("option"); custom.value = "map"; custom.textContent = "지도에서 고른 위치"; custom.hidden = true; sel.appendChild(custom);
+  state.start = nearestNode(G.places[0].ll);
+
+  map = L.map("map", {zoomControl:true, attributionControl:false, preferCanvas:true, minZoom:13, maxZoom:18});
+  const lat = G.nodes.map(p=>p[0]), lon = G.nodes.map(p=>p[1]);
+  const bounds = L.latLngBounds([Math.min(...lat),Math.min(...lon)],[Math.max(...lat),Math.max(...lon)]);
+  map.setMaxBounds(bounds.pad(0.15));
+  map.fitBounds(bounds);
+  const renderer = L.canvas({padding:.3});
+  streetLayer = G.geo.map(pts => L.polyline(pts, {renderer, weight:1.4, color:css("--street"), interactive:false}));
+  streetLayer.forEach(l => l.addTo(map));
+  if (!G.hasLightData) document.querySelector('.layer-switch button[data-v="lit"]').hidden = true;
+  styleStreets();
+  startMarker = L.circleMarker(G.nodes[state.start], {radius:9, weight:3, color:css("--ink"), fillColor:css("--panel"), fillOpacity:1}).addTo(map);
+  map.on("click", ev => { state.start = nearestNode([ev.latlng.lat, ev.latlng.lng]); sel.value = "map"; custom.hidden = false; moveStart(); run(); });
+  sel.addEventListener("change", () => { if (sel.value === "map") return; state.start = nearestNode(G.places[+sel.value].ll); moveStart(); run(); });
+  $("#loading").hidden = true;
+  bindUI();
+  parseNL($("#nl").value);
+  run();
+  window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", restyle);
+  new MutationObserver(restyle).observe(document.documentElement, {attributes:true, attributeFilter:["data-theme"]});
+}
+
+function nearestNode(ll){
+  let best = 0, bd = Infinity;
+  const k = Math.cos(ll[0]*Math.PI/180);
+  G.nodes.forEach((p,i) => { const d = (p[0]-ll[0])**2 + ((p[1]-ll[1])*k)**2; if (d < bd){ bd = d; best = i; } });
+  return best;
+}
+function moveStart(){ startMarker.setLatLng(G.nodes[state.start]); }
+
+// ---------- 코스 엔진 (core.py 이식) ----------
+function weights(){
+  const w = {...MODES[state.mode].w}, h = state.hour;
+  if (h >= 21 || h < 5) w.safe += .35; else if (h >= 19) w.safe += .15;
+  const s = Object.values(w).reduce((a,b)=>a+b,0);
+  for (const k in w) w[k] /= s;
+  return w;
+}
+const isNight = () => state.hour >= 21 || state.hour < 5;
+
+function edgeCosts(){
+  const w = weights(), elder = !!MODES[state.mode].elder, night = isNight();
+  const m = G.edges.length, cost = new Float64Array(m), score = new Float64Array(m), blocked = new Uint8Array(m);
+  for (let i=0;i<m;i++){
+    const e = G.edges[i];
+    const sc = (w.env*e[3] + w.safe*e[4] + w.acc*e[5] + w.sens*e[6] + w.int*e[7]) / 100;
+    score[i] = sc;
+    let c = e[2] * (1 + LAMBDA*(1-sc));
+    if (elder){ if (e[9]&(1|32)) blocked[i] = 1; if (e[9]&4) c *= .6; }
+    if (night && (e[9]&2)) c *= ALLEY_PEN;
+    cost[i] = c;
+  }
+  return {cost, score, blocked};
+}
+
+// 이진 힙 다익스트라
+function dijkstra(src, cost, blocked, target=-1, cutoff=Infinity, useLen=false){
+  const n = G.nodes.length, dist = new Float64Array(n).fill(Infinity), prev = new Int32Array(n).fill(-1);
+  const heap = [[0,src]]; dist[src] = 0;
+  while (heap.length){
+    const [d,u] = pop(heap);
+    if (d > dist[u]) continue;
+    if (u === target) break;
+    if (d > cutoff) break;
+    for (const ei of adj[u]){
+      if (blocked[ei]) continue;
+      const e = G.edges[ei], nd = d + (useLen ? e[2] : cost[ei]);
+      if (nd < dist[e[1]]){ dist[e[1]] = nd; prev[e[1]] = ei; push(heap,[nd,e[1]]); }
+    }
+  }
+  return {dist, prev};
+}
+function push(h,x){ h.push(x); let i=h.length-1; while(i>0){ const p=(i-1)>>1; if(h[p][0]<=h[i][0]) break; [h[p],h[i]]=[h[i],h[p]]; i=p; } }
+function pop(h){ const top=h[0], last=h.pop(); if(h.length){ h[0]=last; let i=0; for(;;){ const l=2*i+1,r=l+1; let s=i; if(l<h.length&&h[l][0]<h[s][0]) s=l; if(r<h.length&&h[r][0]<h[s][0]) s=r; if(s===i) break; [h[s],h[i]]=[h[i],h[s]]; i=s; } } return top; }
+function pathTo(prev, t){ const p=[]; while(prev[t]!==-1){ const ei=prev[t]; p.push(ei); t=G.edges[ei][0]; } return p.reverse(); }
+
+let seed = 7;
+const rand = () => (seed = (seed*16807) % 2147483647) / 2147483647;
+
+function genLoop(start, target, base, avoid){
+  const {score, blocked} = base;
+  const cost = Float64Array.from(base.cost);
+  avoid.forEach(ei => { cost[ei] *= 1.8; });            // 앞서 고른 코스와 겹치지 않도록
+  const elder = !!MODES[state.mode].elder;
+  const lenDist = dijkstra(start, cost, blocked, -1, target*.6, true).dist;
+  const out = dijkstra(start, cost, blocked);           // 한 번에 모든 반환점까지의 갈 길
+  const rev = G.edges.map(()=>-1);
+  const key = new Map(); G.edges.forEach((e,i)=>key.set(e[0]+"_"+e[1],i));
+  const revOf = i => { const e=G.edges[i]; const r=key.get(e[1]+"_"+e[0]); return r===undefined?-1:r; };
+  let lo = .25*target, hi = .5*target; const cands = [];
+  for (let round=0; round<2; round++){
+    let ring = [];
+    for (let v=0; v<lenDist.length; v++) if (lenDist[v]>=lo && lenDist[v]<=hi) ring.push(v);
+    if (elder){ const r2 = ring.filter(v => adj[v].some(ei => G.edges[ei][9]&4)); if (r2.length) ring = r2; }
+    if (!ring.length) break;
+    for (let k=0; k<N_CAND/2 && ring.length; k++){
+      const t = ring.splice(Math.floor(rand()*ring.length),1)[0];
+      if (!isFinite(out.dist[t])) continue;
+      const go = pathTo(out.prev, t);
+      const c2 = Float64Array.from(cost);
+      go.forEach(ei => { c2[ei] *= RETURN_PEN; const r = revOf(ei); if (r>=0) c2[r] *= RETURN_PEN; });
+      const back = dijkstra(t, c2, blocked, start);
+      if (!isFinite(back.dist[start])) continue;
+      const bk = pathTo(back.prev, start), edges = go.concat(bk);
+      const len = edges.reduce((a,ei)=>a+G.edges[ei][2],0);
+      // 갔던 길을 그대로 되돌아오는 비율 (높을수록 왕복 코스)
+      const goSet = new Set(go.map(revOf)); let same = 0;
+      bk.forEach(ei => { if (goSet.has(ei)) same += G.edges[ei][2]; });
+      cands.push({edges, len, dTurn:lenDist[t], retrace: same/len});
+    }
+    const ratios = cands.map(c=>c.len/c.dTurn).filter(isFinite).sort((a,b)=>a-b);
+    if (ratios.length){ const mid = target/ratios[ratios.length>>1]; lo=.9*mid; hi=1.1*mid; }
+  }
+  if (!cands.length) return null;
+  cands.forEach(c => {
+    let s=0; c.edges.forEach(ei => s += score[ei]*G.edges[ei][2]); c.score = s/c.len;
+    c.err = Math.abs(c.len-target)/target;
+  });
+  let ok = cands.filter(c=>c.err<=TOL); if (!ok.length) ok = cands.sort((a,b)=>a.err-b.err).slice(0,3);
+  const val = c => c.score - .5*c.err - .35*c.retrace;
+  return ok.reduce((a,b) => val(b) > val(a) ? b : a);
+}
+
+const Z = i => (G.hasElevation ? G.nodes[i][2] : 0);
+function grade(ei){ const e=G.edges[ei]; return (Z(e[1])-Z(e[0]))/Math.max(e[2],40); }
+const revKey = () => { if (!G._rev){ const m=new Map(); G.edges.forEach((e,i)=>m.set(e[0]+"_"+e[1],i)); G._rev = G.edges.map(e => m.get(e[1]+"_"+e[0]) ?? -1); } return G._rev; };
+// 같은 루프를 반대로 돌면 오르막이 어떻게 달라지는지 보고 방향을 정한다
+function orient(c){
+  if (!G.hasElevation) return c;
+  const rv = revKey(); if (c.edges.some(ei => rv[ei] < 0)) return c;
+  const upF = Math.max(0,...c.edges.map(grade)), upR = Math.max(0,...c.edges.map(ei => -grade(ei)));
+  const wantSteep = state.mode === "hard";
+  const flip = wantSteep ? upR > upF + .005 : upR + .005 < upF;
+  if (flip){ c.edges = c.edges.slice().reverse().map(ei => rv[ei]); c.flipped = true; }
+  return c;
+}
+function stats(c){
+  const a = ACT[state.act]; let lit=0, major=0, dark=0, steps=0, rest=0, toilet=false, lastRest=false;
+  let up=0, maxUp=0; const prof=[[0, Z(G.edges[c.edges[0]][0])]]; let acc=0;
+  c.edges.forEach(ei => { const e=G.edges[ei], dz=Z(e[1])-Z(e[0]); if (dz>0) up+=dz; maxUp=Math.max(maxUp, grade(ei)); acc+=e[2]; prof.push([acc, Z(e[1])]); });
+  c.edges.forEach(ei => { const e=G.edges[ei], L=e[2];
+    if (e[8]>=50) lit+=L; if (e[9]&8) major+=L; if (e[9]&2) dark+=L; if (e[9]&1) steps++;
+    const r = !!(e[9]&4); if (r && !lastRest) rest++; lastRest = r; if (e[9]&16) toilet = true; });
+  const slow = 1 + up/c.len*6;          // 오르막만큼 시간 보정
+  return {km:c.len/1000, min:Math.round(c.len/a.mpm*slow), steps:Math.round(c.len/a.stride), lit:lit/c.len, major:major/c.len, dark:Math.round(dark), stairs:steps, rest, toilet, up:Math.round(up), maxUp, prof};
+}
+
+function targetMeters(){
+  const a = ACT[state.act];
+  if (state.goal==="min") return state.amount*a.mpm;
+  if (state.goal==="steps") return state.amount*a.stride;
+  return state.amount*1000;
+}
+
+function run(){
+  if (!G) return;
+  const btn = $("#go"); btn.disabled = true; btn.textContent = "만드는 중…";
+  requestAnimationFrame(() => setTimeout(() => {
+    seed = 7 + state.start;
+    const base = edgeCosts(), target = targetMeters(), out = [], avoid = new Set();
+    for (let k=0;k<3;k++){
+      const c = genLoop(state.start, target, base, avoid);
+      if (!c) break;
+      c.edges.forEach(ei => avoid.add(ei));
+      orient(c); c.st = stats(c); out.push(c);
+    }
+    state.courses = out; state.sel = 0;
+    drawRoutes(); renderCards();
+    btn.disabled = false; btn.textContent = "코스 다시 만들기";
+  }, 10));
+}
+
+// ---------- 그리기 ----------
+function geoPts(ei){
+  const e = G.edges[ei], pts = G.geo[e[10]];
+  return e[0] < e[1] ? pts : pts.slice().reverse();
+}
+function courseLatLngs(c){ const out=[]; c.edges.forEach(ei => { const p=geoPts(ei); out.push(...(out.length?p.slice(1):p)); }); return out; }
+const COL = () => [css("--c1"), css("--c2"), css("--c3")];
+
+function drawRoutes(){
+  routeLayers.forEach(l => l.remove()); routeLayers = [];
+  if (walker){ walker.remove(); walker = null; }
+  const cols = COL();
+  state.courses.forEach((c,i) => {
+    const on = i===state.sel;
+    const halo = L.polyline(courseLatLngs(c), {weight:on?9:0, color:css("--panel"), opacity:on?.9:0, interactive:false});
+    const line = L.polyline(courseLatLngs(c), {weight:on?5:3, color:cols[i], opacity:on?1:.55, lineJoin:"round"});
+    line.on("click", ev => { L.DomEvent.stop(ev); select(i); });
+    halo.addTo(map); line.addTo(map); routeLayers.push(halo, line);
+    if (!on) line.bringToBack();
+  });
+  streetLayer.forEach(l => l.bringToBack());
+  startMarker.setStyle({color:css("--ink"), fillColor:css("--panel")}); startMarker.bringToFront();
+  const c = state.courses[state.sel];
+  if (c) map.fitBounds(L.latLngBounds(courseLatLngs(c)).pad(.25), {maxZoom:16});
+}
+
+function renderCards(){
+  const box = $("#results"); box.innerHTML = "";
+  if (!state.courses.length){ box.innerHTML = '<div class="empty">이 조건으로는 코스를 만들지 못했어요. 목표를 줄이거나 출발점을 바꿔 보세요.</div>'; return; }
+  const cols = ["var(--c1)","var(--c2)","var(--c3)"], elder = !!MODES[state.mode].elder;
+  state.courses.forEach((c,i) => {
+    const s = c.st, b = document.createElement("button");
+    b.className = "course"; b.style.setProperty("--cc", cols[i]); b.setAttribute("aria-pressed", i===state.sel);
+    const chips = [];
+    if (isNight()) chips.push(s.dark<=150 ? '<span class="chip ok">어두운 골목 적음</span>' : '<span class="chip warn">어두운 골목 '+s.dark+'m</span>');
+    if (elder) chips.push(s.stairs===0 ? '<span class="chip ok">계단 없음</span>' : '<span class="chip warn">계단 '+s.stairs+'곳</span>');
+    if (G.hasElevation){
+      if (elder) chips.push(s.maxUp<=.08 ? '<span class="chip ok">급경사 없음</span>' : '<span class="chip warn">급경사 있음</span>');
+      if (state.mode==="hard") chips.push(s.up>=25 ? '<span class="chip ok">언덕 포함</span>' : '<span class="chip warn">평탄한 편</span>');
+    }
+    b.innerHTML = `<span class="swatch"></span><h3>코스 ${i+1}</h3><span class="big">${s.km.toFixed(2)}km · ${s.min}분</span>
+      <div class="facts"><span>걸음 <b>${s.steps.toLocaleString()}</b></span>${G.hasLightData?`<span>조명 <b>${Math.round(s.lit*100)}%</b></span>`:''}<span>큰길 <b>${Math.round(s.major*100)}%</b></span><span>쉼터 <b>${s.rest}</b>곳</span>${G.hasElevation?`<span>오르막 <b>${s.up}m</b></span><span>최대 경사 <b>${Math.round(s.maxUp*100)}%</b></span>`:''}${s.toilet?'<span>화장실 경유</span>':''} ${chips.join(" ")}</div>${(i===state.sel && G.hasElevation) ? profileSVG(s.prof) : ''}`;
+    b.addEventListener("click", () => select(i));
+    box.appendChild(b);
+  });
+  const walk = document.createElement("button");
+  walk.className = "walk-btn"; walk.textContent = "선택한 코스 따라 걷기 미리보기";
+  walk.addEventListener("click", preview);
+  box.appendChild(walk);
+}
+function profileSVG(p){
+  const W=320, H=46, top=4, bot=14, tot=p[p.length-1][0];
+  const zs=p.map(q=>q[1]), lo=Math.min(...zs), hi=Math.max(...zs), span=Math.max(hi-lo,15);
+  const X=d=>d/tot*W, Y=z=>top+(H-top-bot)*(1-(z-lo)/span);
+  const line=p.map((q,k)=>(k?"L":"M")+X(q[0]).toFixed(1)+" "+Y(q[1]).toFixed(1)).join("");
+  return `<svg class="profile" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" role="img" aria-label="고도 단면, 최저 ${Math.round(lo)}m 최고 ${Math.round(hi)}m">
+    <path class="area" d="${line}L${W} ${H-bot}L0 ${H-bot}Z"/><path class="ln" d="${line}" vector-effect="non-scaling-stroke"/>
+    <text x="0" y="${H-2}">출발 ${Math.round(p[0][1])}m</text><text x="${W}" y="${H-2}" text-anchor="end">최고 ${Math.round(hi)}m</text></svg>`;
+}
+function select(i){ state.sel = i; drawRoutes(); renderCards(); }
+
+function preview(){
+  const c = state.courses[state.sel]; if (!c) return;
+  const pts = courseLatLngs(c);
+  if (walker) walker.remove();
+  walker = L.circleMarker(pts[0], {radius:7, weight:3, color:css("--panel"), fillColor:COL()[state.sel], fillOpacity:1}).addTo(map);
+  const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  if (reduce){ walker.setLatLng(pts[pts.length>>1]); return; }
+  // 거리 비례로 8초 동안 이동
+  const seg=[0]; for (let i=1;i<pts.length;i++) seg.push(seg[i-1]+map.distance(pts[i-1],pts[i]));
+  const total = seg[seg.length-1], t0 = performance.now(), dur = 8000;
+  const step = now => {
+    if (!walker) return;
+    const d = Math.min(1,(now-t0)/dur)*total; let k=1; while (k<seg.length-1 && seg[k]<d) k++;
+    const f = (d-seg[k-1])/((seg[k]-seg[k-1])||1), a=pts[k-1], b=pts[k];
+    walker.setLatLng([a[0]+(b[0]-a[0])*f, a[1]+(b[1]-a[1])*f]);
+    if (d < total) requestAnimationFrame(step);
+  };
+  requestAnimationFrame(step);
+}
+
+function styleStreets(){
+  const mode = state.layer, plain = css("--street"), major = css("--street-major");
+  const ramp = v => { // 0~1 → 빨강·노랑·초록
+    const stops = [[185,28,28],[229,178,58],[21,128,61]], x = Math.max(0,Math.min(1,v))*2, i = Math.min(1,Math.floor(x)), f = x-i;
+    const c = stops[i].map((s,j)=>Math.round(s+(stops[i+1][j]-s)*f)); return `rgb(${c})`; };
+  const val = new Float64Array(G.geo.length).fill(-1), wide = new Uint8Array(G.geo.length);
+  G.edges.forEach((e,i) => { const g=e[10]; if (e[9]&8) wide[g]=1;
+    if (mode==="lit") val[g] = Math.max(val[g], e[8]/100);
+    if (mode==="access") val[g] = Math.max(val[g], e[5]/100);
+    if (mode==="slope") val[g] = Math.max(val[g], 1 - Math.min(1, Math.abs(grade(i))/.12)); });
+  streetLayer.forEach((l,g) => l.setStyle(mode==="plain"
+    ? {color: wide[g]?major:plain, weight: wide[g]?2.2:1.3, opacity:1}
+    : {color: ramp(val[g]), weight: wide[g]?2.4:1.6, opacity:.6}));
+  $("#legend").hidden = mode==="plain";
+  $("#lg-lo").textContent = mode==="slope" ? "가파름" : "낮음"; $("#lg-hi").textContent = mode==="slope" ? "평탄" : "높음";
+}
+function restyle(){ if (!G) return; styleStreets(); drawRoutes(); }
+
+// ---------- 화면 조작 ----------
+function setPressed(groupSel, v){ document.querySelectorAll(groupSel+" button").forEach(b => b.setAttribute("aria-pressed", b.dataset.v===v)); }
+function amountUI(){
+  const r = $("#amount");
+  const cfg = {min:[10,90,5,"분"], steps:[1000,10000,200,"보"], km:[1,10,.5,"km"]}[state.goal];
+  [r.min,r.max,r.step] = cfg; r.value = state.amount = Math.min(cfg[1],Math.max(cfg[0],state.amount));
+  $("#amount-val").textContent = state.goal==="steps" ? Number(state.amount).toLocaleString()+"보" : state.amount+cfg[3];
+}
+function timeUI(){
+  $("#hour").value = state.hour; $("#hour-val").textContent = String(state.hour).padStart(2,"0")+":00";
+  const n = $("#time-note");
+  if (isNight()){ n.className = "time-note night"; n.innerHTML = "<b>야간 안전 모드</b> 자동 적용 · 밝은 큰길 우선, 어두운 골목 회피"; }
+  else if (state.hour >= 19){ n.className = "time-note night"; n.innerHTML = "<b>저녁</b> · 안전 가중치를 조금 올려요"; }
+  else { n.className = "time-note"; n.textContent = "낮 시간 · 고른 모드 그대로 코스를 만들어요"; }
+}
+function bindUI(){
+  const seg = (sel, key, after) => document.querySelectorAll(sel+" button").forEach(b => b.addEventListener("click", () => { state[key] = b.dataset.v; setPressed(sel, b.dataset.v); after && after(); run(); }));
+  seg("#mode","mode"); seg("#act","act");
+  seg("#goal","goal", () => { state.amount = {min:30, steps:3200, km:3}[state.goal]; amountUI(); });
+  $("#amount").addEventListener("input", e => { state.amount = +e.target.value; amountUI(); });
+  $("#amount").addEventListener("change", run);
+  $("#hour").addEventListener("input", e => { state.hour = +e.target.value; timeUI(); });
+  $("#hour").addEventListener("change", run);
+  $("#go").addEventListener("click", run);
+  let t; $("#nl").addEventListener("input", e => { clearTimeout(t); t = setTimeout(() => { parseNL(e.target.value); run(); }, 600); });
+  $("#nl").addEventListener("keydown", e => { if (e.key==="Enter"){ clearTimeout(t); parseNL(e.target.value); run(); } });
+  document.querySelectorAll(".layer-switch button").forEach(b => b.addEventListener("click", () => { state.layer = b.dataset.v; setPressed(".layer-switch", b.dataset.v); styleStreets(); }));
+  amountUI(); timeUI();
+}
+
+// 데모용 키워드 해석 (실서비스는 LLM이 조건으로 변환)
+function parseNL(s){
+  const got = [];
+  const num = re => { const m = s.replace(/,/g,"").match(re); return m ? parseFloat(m[1]) : null; };
+  if (/무릎|어르신|계단|편한|편하게|천천|(언덕|오르막).{0,3}(없|빼|피)|평지/.test(s)){ state.mode="easy"; got.push("편안 모드"); }
+  else if (/밤|어두|밝은|안전|무서|늦/.test(s)){ state.mode="safe"; got.push("안심 모드"); }
+  else if (/(언덕|오르막).{0,3}(있|포함|많)|도전|빡세|힘들|강도/.test(s)){ state.mode="hard"; got.push("도전 모드"); }
+  if (/뛰|러닝|달리|조깅/.test(s)){ state.act="run"; got.push("달리기"); }
+  else if (/천천|산책|어르신|무릎/.test(s)){ state.act="slow"; got.push("천천히"); }
+  else if (/걷/.test(s)){ state.act="walk"; got.push("걷기"); }
+  const km = num(/(\d+(?:\.\d+)?)\s*(?:km|킬로)/i), mins = num(/(\d+)\s*분/), steps = num(/(\d+)\s*보/), hr = num(/(\d+)\s*시간/);
+  if (steps){ state.goal="steps"; state.amount=steps; got.push(steps.toLocaleString()+"보"); }
+  else if (km){ state.goal="km"; state.amount=km; got.push(km+"km"); }
+  else if (mins || hr){ state.goal="min"; state.amount=(mins||0)+(hr||0)*60; got.push(state.amount+"분"); }
+  if (/밤|늦/.test(s) && state.hour < 21){ state.hour = 21; got.push("21시 출발"); }
+  if (/낮|오후/.test(s)){ state.hour = 15; got.push("15시 출발"); }
+  if (/아침|새벽/.test(s)){ state.hour = 7; got.push("7시 출발"); }
+  setPressed("#mode",state.mode); setPressed("#act",state.act); setPressed("#goal",state.goal); amountUI(); timeUI();
+  $("#parsed").innerHTML = got.map(g => `<span>${g}</span>`).join("");
+}
+})();
+</script>
