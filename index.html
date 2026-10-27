@@ -764,6 +764,14 @@ header.brand{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
 .profile text{font-size:10px;fill:var(--ink-2);font-family:var(--mono)}
 .walk-btn{font:inherit;font-size:12px;font-weight:600;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:999px;padding:4px 12px;cursor:pointer;justify-self:start}
 .loading[hidden]{display:none}
+.rt-tag{background:var(--panel);color:var(--ink);border:1.5px solid var(--tc,var(--ink));border-radius:999px;font:700 11px var(--font);padding:1px 7px;white-space:nowrap;box-shadow:0 1px 4px rgba(0,0,0,.2);transform:translate(-50%,-50%);display:inline-block}
+.seg-bar{grid-column:1/4;display:flex;flex-direction:column;gap:3px}
+.seg-bar .strip{display:flex;height:10px;border-radius:5px;overflow:hidden;background:var(--bg)}
+.seg-bar .strip i{display:block;height:100%}
+.seg-bar .cap{display:flex;justify-content:space-between;font-size:11px;color:var(--ink-2)}
+.seg-bar .cap b{color:var(--ink);font-family:var(--mono)}
+.layer-hint{position:absolute;z-index:500;top:calc(52px + env(safe-area-inset-top,0px));right:max(12px,env(safe-area-inset-right,0px));background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:4px 10px;font-size:11px;color:var(--ink-2)}
+.layer-hint[hidden]{display:none}
 .loading{position:absolute;inset:0;display:grid;place-items:center;z-index:600;background:var(--map);color:var(--ink-2);font-size:13px}
 @media (max-width:820px){
   .app{grid-template-columns:1fr;grid-template-rows:52vh 1fr}
@@ -859,6 +867,7 @@ header.brand{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
       <button data-v="access" aria-pressed="false">접근성</button>
       <button data-v="slope" aria-pressed="false">경사</button>
     </div>
+    <div class="layer-hint" id="layer-hint" hidden>선택한 코스를 구간별로 색칠했어요</div>
     <div class="legend" id="legend" hidden><span id="lg-lo">낮음</span><span class="bar"></span><span id="lg-hi">높음</span></div>
     <div class="credit">© OpenStreetMap contributors · 고도 Mapzen Terrain Tiles</div>
     <div class="loading" id="loading">지도 데이터를 불러오는 중…</div>
@@ -1092,10 +1101,20 @@ function drawRoutes(){
   routeLayers.forEach(l => l.remove()); routeLayers = [];
   if (walker){ walker.remove(); walker = null; }
   const cols = COL();
+  const Ly = LAYERS[state.layer];
   state.courses.forEach((c,i) => {
     const on = i===state.sel;
+    if (on && Ly){
+      // 선택한 코스: 구간마다 색을 달리 칠함
+      const halo = L.polyline(courseLatLngs(c), {weight:11, color:css("--panel"), opacity:.95, interactive:false}).addTo(map);
+      routeLayers.push(halo);
+      c.edges.forEach(ei => routeLayers.push(L.polyline(geoPts(ei), {weight:7, color:ramp(Ly.val(ei)), opacity:1, lineCap:"round", interactive:false}).addTo(map)));
+      courseTags(c, state.layer).forEach(t => routeLayers.push(L.marker(t.ll, {interactive:false, keyboard:false,
+        icon:L.divIcon({className:"", html:`<span class="rt-tag" style="--tc:${t.color}">${t.text}</span>`, iconSize:[0,0]})}).addTo(map)));
+      return;
+    }
     const halo = L.polyline(courseLatLngs(c), {weight:on?9:0, color:css("--panel"), opacity:on?.9:0, interactive:false});
-    const line = L.polyline(courseLatLngs(c), {weight:on?5:3, color:cols[i], opacity:on?1:.55, lineJoin:"round"});
+    const line = L.polyline(courseLatLngs(c), {weight:on?5:3, color:cols[i], opacity:on?1:(Ly?.3:.55), lineJoin:"round"});
     line.on("click", ev => { L.DomEvent.stop(ev); select(i); });
     halo.addTo(map); line.addTo(map); routeLayers.push(halo, line);
     if (!on) line.bringToBack();
@@ -1121,7 +1140,7 @@ function renderCards(){
       if (state.mode==="hard") chips.push(s.up>=25 ? '<span class="chip ok">언덕 포함</span>' : '<span class="chip warn">평탄한 편</span>');
     }
     b.innerHTML = `<span class="swatch"></span><h3>코스 ${i+1}</h3><span class="big">${s.km.toFixed(2)}km · ${s.min}분</span>
-      <div class="facts"><span>걸음 <b>${s.steps.toLocaleString()}</b></span>${G.hasLightData?`<span>조명 <b>${Math.round(s.lit*100)}%</b></span>`:''}<span>큰길 <b>${Math.round(s.major*100)}%</b></span><span>쉼터 <b>${s.rest}</b>곳</span>${G.hasElevation?`<span>오르막 <b>${s.up}m</b></span><span>최대 경사 <b>${Math.round(s.maxUp*100)}%</b></span>`:''}${s.toilet?'<span>화장실 경유</span>':''} ${chips.join(" ")}</div>${(i===state.sel && G.hasElevation) ? profileSVG(s.prof) : ''}`;
+      <div class="facts"><span>걸음 <b>${s.steps.toLocaleString()}</b></span>${G.hasLightData?`<span>조명 <b>${Math.round(s.lit*100)}%</b></span>`:''}<span>큰길 <b>${Math.round(s.major*100)}%</b></span><span>쉼터 <b>${s.rest}</b>곳</span>${G.hasElevation?`<span>오르막 <b>${s.up}m</b></span><span>최대 경사 <b>${Math.round(s.maxUp*100)}%</b></span>`:''}${s.toilet?'<span>화장실 경유</span>':''} ${chips.join(" ")}</div>${(i===state.sel && LAYERS[state.layer]) ? segBar(c, state.layer) : ''}${(i===state.sel && G.hasElevation) ? profileSVG(s.prof) : ''}`;
     b.addEventListener("click", () => select(i));
     box.appendChild(b);
   });
@@ -1161,25 +1180,82 @@ function preview(){
   requestAnimationFrame(step);
 }
 
+// ---------- 코스 구간 분석 (조명·접근성·경사) ----------
+const ramp = v => { // 0~1 → 빨강·노랑·초록
+  const stops = [[185,28,28],[229,178,58],[21,128,61]], x = Math.max(0,Math.min(1,v))*2, i = Math.min(1,Math.floor(x)), f = x-i;
+  const c = stops[i].map((s,j)=>Math.round(s+(stops[i+1][j]-s)*f)); return `rgb(${c})`; };
+const LAYERS = {
+  lit:    {lo:"어두움", hi:"밝음", val: ei => G.edges[ei][8]/100},
+  access: {lo:"불편", hi:"편함", val: ei => (G.edges[ei][9]&1) ? 0 : G.edges[ei][5]/100},
+  slope:  {lo:"가파름", hi:"평탄", val: ei => 1 - Math.min(1, Math.abs(grade(ei))/.12)},
+};
+// 연속된 같은 종류 구간을 하나로 묶어 표시 위치(가운데)와 길이를 돌려줌
+function runs(c, test){
+  const out = []; let cur = null, acc = 0;
+  c.edges.forEach((ei,k) => {
+    const t = test(ei), L = G.edges[ei][2];
+    if (t && cur && cur.key === t.key && cur.end === k-1){ cur.len += L; cur.end = k; cur.eis.push(ei); cur.max = Math.max(cur.max, t.v||0); }
+    else if (t){ cur = {key:t.key, len:L, start:k, end:k, eis:[ei], at:acc, max:t.v||0}; out.push(cur); }
+    else cur = null;
+    acc += L;
+  });
+  return out;
+}
+function midOf(eis){
+  const pts = []; eis.forEach(ei => { const p=geoPts(ei); pts.push(...(pts.length?p.slice(1):p)); });
+  const cum=[0]; for (let i=1;i<pts.length;i++) cum.push(cum[i-1]+map.distance(pts[i-1],pts[i]));
+  const h = cum[cum.length-1]/2; let k=1; while (k<cum.length-1 && cum[k]<h) k++;
+  const f=(h-cum[k-1])/((cum[k]-cum[k-1])||1); return [pts[k-1][0]+(pts[k][0]-pts[k-1][0])*f, pts[k-1][1]+(pts[k][1]-pts[k-1][1])*f];
+}
+// 레이어별 코스 위 표시: [{ll, text, color}]
+function courseTags(c, mode){
+  const tags = [], bad = css("--bad"), warn = css("--warn"), good = css("--good"), ink = css("--ink-2");
+  if (mode === "lit"){
+    runs(c, ei => G.edges[ei][8] < 50 ? {key:"dark"} : null).filter(r => r.len >= 40)
+      .forEach(r => tags.push({ll:midOf(r.eis), text:`어두움 ${Math.round(r.len)}m`, color:bad}));
+  }
+  if (mode === "slope"){
+    runs(c, ei => { const g = grade(ei); return Math.abs(g) > .05 ? {key: g>0?"up":"down", v:Math.abs(g)} : null; })
+      .filter(r => r.len >= 30)
+      .forEach(r => tags.push({ll:midOf(r.eis), text:`${r.key==="up"?"▲ 오르막":"▼ 내리막"} ${Math.round(r.max*100)}%`, color: r.max>.08 ? bad : warn}));
+  }
+  if (mode === "access" || mode === "slope"){
+    runs(c, ei => (G.edges[ei][9]&1) ? {key:"st"} : null).forEach(r => tags.push({ll:midOf(r.eis), text:"계단", color:bad}));
+  }
+  if (mode === "access"){
+    runs(c, ei => (G.edges[ei][9]&16) ? {key:"wc"} : null).forEach(r => tags.push({ll:midOf(r.eis), text:"화장실", color:good}));
+    runs(c, ei => (G.edges[ei][9]&4) ? {key:"rest"} : null).filter(r => r.len >= 60)
+      .forEach(r => tags.push({ll:midOf(r.eis), text:"쉼터", color:good}));
+  }
+  // 왕복 구간처럼 같은 자리에 같은 표시가 겹치면 하나만
+  return tags.filter((t,i) => !tags.slice(0,i).some(u => u.text.split(" ")[0]===t.text.split(" ")[0] && map.distance(u.ll,t.ll) < 35));
+}
+// 카드에 넣을 구간 막대 + 한 줄 요약
+function segBar(c, mode){
+  const L = LAYERS[mode]; if (!L) return "";
+  const tot = c.len;
+  const cells = c.edges.map(ei => `<i style="width:${(G.edges[ei][2]/tot*100).toFixed(2)}%;background:${ramp(L.val(ei))}"></i>`).join("");
+  let note = "";
+  if (mode === "lit"){ const d = c.edges.reduce((a,ei)=>a+(G.edges[ei][8]<50?G.edges[ei][2]:0),0); note = d < 1 ? "어두운 구간 없음" : `어두운 구간 <b>${Math.round(d)}m</b>`; }
+  if (mode === "slope"){ const up = runs(c, ei => grade(ei) > .08 ? {key:"s"} : null).length; note = up ? `8% 넘는 오르막 <b>${up}</b>곳` : "8% 넘는 오르막 없음"; }
+  if (mode === "access"){ const st = runs(c, ei => (G.edges[ei][9]&1) ? {key:"s"} : null).length; note = st ? `계단 <b>${st}</b>곳` : "계단 없음"; }
+  return `<div class="seg-bar"><div class="strip" role="img" aria-label="코스 구간별 ${mode==="lit"?"조명":mode==="slope"?"경사":"접근성"}">${cells}</div>
+    <div class="cap"><span>출발</span><span>${note}</span><span>도착</span></div></div>`;
+}
+
 function isDark(){
   const t = document.documentElement.dataset.theme;
   return t ? t === "dark" : window.matchMedia("(prefers-color-scheme: dark)").matches;
 }
 function styleStreets(){
   const mode = state.layer, plain = css("--street"), major = css("--street-major");
-  const ramp = v => { // 0~1 → 빨강·노랑·초록
-    const stops = [[185,28,28],[229,178,58],[21,128,61]], x = Math.max(0,Math.min(1,v))*2, i = Math.min(1,Math.floor(x)), f = x-i;
-    const c = stops[i].map((s,j)=>Math.round(s+(stops[i+1][j]-s)*f)); return `rgb(${c})`; };
-  const val = new Float64Array(G.geo.length).fill(-1), wide = new Uint8Array(G.geo.length);
-  G.edges.forEach((e,i) => { const g=e[10]; if (e[9]&8) wide[g]=1;
-    if (mode==="lit") val[g] = Math.max(val[g], e[8]/100);
-    if (mode==="access") val[g] = Math.max(val[g], e[5]/100);
-    if (mode==="slope") val[g] = Math.max(val[g], 1 - Math.min(1, Math.abs(grade(i))/.12)); });
-  streetLayer.forEach((l,g) => l.setStyle(mode==="plain"
-    ? (tilesOk ? {opacity:0} : {color: wide[g]?major:plain, weight: wide[g]?2.2:1.3, opacity:1})
-    : {color: ramp(val[g]), weight: wide[g]?3:2.2, opacity:tilesOk?.85:.6}));
-  $("#legend").hidden = mode==="plain";
-  $("#lg-lo").textContent = mode==="slope" ? "가파름" : "낮음"; $("#lg-hi").textContent = mode==="slope" ? "평탄" : "높음";
+  const wide = new Uint8Array(G.geo.length);
+  G.edges.forEach(e => { if (e[9]&8) wide[e[10]] = 1; });
+  // 전체 지도는 칠하지 않고, 선택한 코스만 구간별로 칠함 (drawRoutes)
+  streetLayer.forEach((l,g) => l.setStyle(tilesOk ? {opacity:0} : {color: wide[g]?major:plain, weight: wide[g]?2.2:1.3, opacity:1}));
+  const Ly = LAYERS[mode];
+  $("#legend").hidden = !Ly; $("#layer-hint").hidden = !Ly;
+  if (Ly){ $("#lg-lo").textContent = Ly.lo; $("#lg-hi").textContent = Ly.hi; }
 }
 function restyle(){ if (!G) return;
   if (baseLayer) baseLayer.setUrl(baseLayer._oneulgilURL());
@@ -1211,7 +1287,7 @@ function bindUI(){
   $("#go").addEventListener("click", run);
   let t; $("#nl").addEventListener("input", e => { clearTimeout(t); t = setTimeout(() => { parseNL(e.target.value); run(); }, 600); });
   $("#nl").addEventListener("keydown", e => { if (e.key==="Enter"){ clearTimeout(t); parseNL(e.target.value); run(); } });
-  document.querySelectorAll(".layer-switch button").forEach(b => b.addEventListener("click", () => { state.layer = b.dataset.v; setPressed(".layer-switch", b.dataset.v); styleStreets(); }));
+  document.querySelectorAll(".layer-switch button").forEach(b => b.addEventListener("click", () => { state.layer = b.dataset.v; setPressed(".layer-switch", b.dataset.v); styleStreets(); drawRoutes(); renderCards(); }));
   amountUI(); timeUI();
 }
 
