@@ -755,7 +755,9 @@ header.brand{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
 .legend[hidden]{display:none}
 .place-label{background:var(--panel);color:var(--ink);border:1px solid var(--line);border-radius:6px;font:600 12px var(--font);padding:2px 7px;box-shadow:0 1px 4px rgba(0,0,0,.15)}
 .place-label::before{display:none}
-.leaflet-tile-pane{transition:opacity .2s}
+.leaflet-tile-pane{opacity:.75}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .leaflet-tile-pane{filter:invert(1) hue-rotate(180deg) brightness(.85) contrast(.9);opacity:.8}}
+:root[data-theme="dark"] .leaflet-tile-pane{filter:invert(1) hue-rotate(180deg) brightness(.85) contrast(.9);opacity:.8}
 .profile{grid-column:1/4;width:100%;height:46px;display:block}
 .profile .area{fill:var(--accent-soft)}
 .profile .ln{fill:none;stroke:var(--cc);stroke-width:1.5}
@@ -858,7 +860,7 @@ header.brand{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
       <button data-v="slope" aria-pressed="false">경사</button>
     </div>
     <div class="legend" id="legend" hidden><span id="lg-lo">낮음</span><span class="bar"></span><span id="lg-hi">높음</span></div>
-    <div class="credit">© OpenStreetMap contributors · © CARTO · 고도 Mapzen Terrain Tiles</div>
+    <div class="credit">© OpenStreetMap contributors · 고도 Mapzen Terrain Tiles</div>
     <div class="loading" id="loading">지도 데이터를 불러오는 중…</div>
   </main>
 </div>
@@ -903,11 +905,9 @@ function init(data){
   const bounds = L.latLngBounds([Math.min(...lat),Math.min(...lon)],[Math.max(...lat),Math.max(...lon)]);
   map.setMaxBounds(bounds.pad(0.15));
   map.fitBounds(bounds);
-  // 배경 지도: 밝은 화면은 CARTO Voyager, 어두운 화면은 Dark Matter (지명·역 이름 표시)
-  const tileURL = () => isDark()
-    ? "https://{s}.basemaps.cartocdn.com/rastertiles/dark_all/{z}/{x}/{y}{r}.png"
-    : "https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png";
-  baseLayer = L.tileLayer(tileURL(), {subdomains:"abcd", maxZoom:19, crossOrigin:true});
+  // 배경 지도: OpenStreetMap 기본 타일 (한글 지명·역 이름 표시). 다크 모드는 CSS 필터로 어둡게
+  const tileURL = () => "https://tile.openstreetmap.org/{z}/{x}/{y}.png";
+  baseLayer = L.tileLayer(tileURL(), {maxZoom:19});
   baseLayer.on("tileload", () => { if (!tilesOk){ tilesOk = true; styleStreets(); } });
   baseLayer.addTo(map);
   baseLayer._oneulgilURL = tileURL;
