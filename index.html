@@ -718,6 +718,11 @@ header.brand{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
 .group{display:flex;flex-direction:column;gap:8px}
 .seg{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
 .seg.three{grid-template-columns:repeat(3,1fr)}
+.seg.two{grid-template-columns:repeat(2,1fr)}
+.presets{display:flex;flex-wrap:wrap;gap:6px}
+.presets button{font:inherit;font-size:13px;font-weight:600;color:var(--accent);background:var(--accent-soft);border:1px solid transparent;border-radius:999px;padding:5px 12px;cursor:pointer}
+.presets button[aria-pressed="true"]{border-color:var(--accent)}
+.label small{font-weight:400;letter-spacing:0;color:var(--ink-2)}
 .seg button{font:inherit;font-size:13px;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:var(--r);padding:8px 4px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:1px;line-height:1.3}
 .seg button small{font-size:11px;color:var(--ink-2)}
 .seg button[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
@@ -824,16 +829,35 @@ header.brand{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
           <input id="nl" type="text" value="언덕 없이 편한 길로 30분 걷기" autocomplete="off">
         </div>
         <div class="parsed" id="parsed"></div>
-        <span class="hint">데모에서는 키워드로 해석해요. 예: "밤이라 밝은 길로 30분", "3,200보 남았어", "언덕 있는 5km 러닝"</span>
+        <span class="hint">데모에서는 키워드로 해석해요. 예: "밤이라 밝은 길로 30분", "공원이나 하천 따라 산책", "신호 적은 5km 러닝"</span>
       </div>
 
       <div class="group">
-        <span class="label" id="lbl-mode">모드</span>
-        <div class="seg" role="group" aria-labelledby="lbl-mode" id="mode">
+        <span class="label" id="lbl-preset">바로가기</span>
+        <div class="presets" role="group" aria-labelledby="lbl-preset" id="presets">
+          <button data-p="elder" aria-pressed="false">어르신 추천</button>
+          <button data-p="night" aria-pressed="false">밤 산책</button>
+          <button data-p="park" aria-pressed="false">공원·하천 산책</button>
+          <button data-p="run" aria-pressed="false">퇴근 후 러닝</button>
+        </div>
+      </div>
+
+      <div class="group">
+        <span class="label" id="lbl-act">활동</span>
+        <div class="seg two" role="group" aria-labelledby="lbl-act" id="act">
+          <button data-v="walk" aria-pressed="true">산책<small>걷기</small></button>
+          <button data-v="run" aria-pressed="false">러닝<small>달리기</small></button>
+        </div>
+        <span class="hint" id="act-hint"></span>
+      </div>
+
+      <div class="group">
+        <span class="label" id="lbl-cond">우선 조건 <small>여러 개 고를 수 있어요</small></span>
+        <div class="seg" role="group" aria-labelledby="lbl-cond" id="conds">
           <button data-v="safe" aria-pressed="false">안심<small>밝은 큰길</small></button>
           <button data-v="easy" aria-pressed="false">편안<small>계단·언덕 없이</small></button>
-          <button data-v="hard" aria-pressed="false">도전<small>운동 강도</small></button>
-          <button data-v="daily" aria-pressed="true">일상<small>균형</small></button>
+          <button data-v="nature" aria-pressed="false">자연<small>공원·하천</small></button>
+          <button data-v="hard" aria-pressed="false">운동 강도<small>언덕 포함</small></button>
         </div>
       </div>
 
@@ -847,11 +871,6 @@ header.brand{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
         <div class="slider-row">
           <input id="amount" type="range" min="10" max="60" step="5" value="30" aria-label="목표 크기">
           <span class="val" id="amount-val">30분</span>
-        </div>
-        <div class="seg three" role="group" aria-label="활동" id="act">
-          <button data-v="walk" aria-pressed="true">걷기</button>
-          <button data-v="run" aria-pressed="false">달리기</button>
-          <button data-v="slow" aria-pressed="false">천천히</button>
         </div>
       </div>
 
@@ -877,9 +896,10 @@ header.brand{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
       </div>
 
       <div class="how">
-        <p><b>어떻게 고르나요?</b> <span id="how-area">이 지역</span> 일대 길 <span id="how-n"></span>개에 환경·안전·접근성·소음 회피·운동 강도 점수를 매기고, 고른 모드와 출발 시각에 따라 가중치를 다르게 합산해 점수가 높은 길 위주로 돌아오는 코스를 찾아요. 21시 이후에는 안전 가중치가 자동으로 올라가고 어두운 골목을 피해요.</p>
-        <p id="how-slope"><b>오르막·내리막</b> 고도 타일로 길마다 경사를 계산해요. 편안 모드는 경사 8%가 넘는 길을 빼고, 도전 모드는 언덕을 일부러 넣어요. 같은 코스라도 오르막이 덜 가파른 방향으로 돌도록 방향을 정해요.</p>
-        <p>데이터: OpenStreetMap 도로망·시설, <span id="how-lights"></span> <span id="how-elev">고도는 Mapzen Terrain Tiles.</span></p>
+        <p><b>어떻게 고르나요?</b> <span id="how-area">이 지역</span> 일대 길 <span id="how-n"></span>개에 환경·자연·안전·접근성·소음 회피·운동 강도 점수와 횡단보도 신호 정보를 붙이고, 산책·러닝과 고른 조건, 출발 시각에 맞춰 합산해 돌아오는 코스를 찾아요. 21시 이후에는 안전 가중치가 올라가고, 어두운 골목과 밤의 공원·하천변은 덜 고르게 돼요.</p>
+        <p><b>산책과 러닝</b> 러닝은 신호 대기(횡단보도 신호 1곳당 약 80m 더 먼 길로 계산), 상가·정류장 혼잡, 잦은 꺾임을 피하고 거리를 ±3%로 맞춰요. 편안 조건은 반대로 신호 없는 횡단보도를 피하고 신호 있는 횡단보도로 건너게 해요.</p>
+        <p id="how-slope"><b>오르막·내리막</b> 고도 타일로 길마다 경사를 계산해요. 편안 조건은 경사 8%가 넘는 길을 빼고, 운동 강도 조건은 언덕을 일부러 넣어요. 같은 코스라도 오르막이 덜 가파른 방향으로 돌도록 방향을 정해요.</p>
+        <p>데이터: OpenStreetMap 도로망·시설·공원·하천, 서울시 횡단보도 정보(보행 신호 유무), <span id="how-lights"></span> <span id="how-elev">고도는 Mapzen Terrain Tiles.</span></p>
       </div>
     </div>
   </aside>
@@ -891,6 +911,7 @@ header.brand{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
       <button data-v="lit" aria-pressed="false">조명</button>
       <button data-v="access" aria-pressed="false">접근성</button>
       <button data-v="slope" aria-pressed="false">경사</button>
+      <button data-v="nature" aria-pressed="false">자연</button>
     </div>
     <div class="layer-hint" id="layer-hint" hidden>선택한 코스를 구간별로 색칠했어요</div>
     <div class="legend" id="legend" hidden><span id="lg-lo">낮음</span><span class="bar"></span><span id="lg-hi">높음</span></div>
@@ -911,23 +932,44 @@ header.brand{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
 <script>
 (() => {
 // ---------- 설정 (시뮬레이션 코드 config.py와 같은 값) ----------
-const MODES = {
-  safe:  {name:"안심", w:{env:.15,int:0,sens:.10,safe:.60,acc:.10}},
-  easy:  {name:"편안", w:{env:.20,int:0,sens:.10,safe:.15,acc:.45}, elder:true},
-  hard:  {name:"도전", w:{env:.15,int:.50,sens:.10,safe:.10,acc:.10}},
-  daily: {name:"일상", w:{env:.2,int:.2,sens:.2,safe:.2,acc:.2}},
+// 활동별 기본 가중치 (env 환경, nat 자연, safe 안전, acc 접근성, sens 소음·혼잡 회피, int 운동 강도)
+const BASE_W = {
+  walk: {env:.20, nat:.20, safe:.20, acc:.15, sens:.20, int:.05},
+  run:  {env:.15, nat:.15, safe:.15, acc:.05, sens:.25, int:.10},
 };
-const ACT = {walk:{name:"걷기",mpm:75,stride:.70}, run:{name:"달리기",mpm:150,stride:1.0}, slow:{name:"천천히",mpm:55,stride:.60}};
+// 우선 조건을 고르면 더해지는 가중치 (여러 개 선택 가능)
+const COND = {
+  safe:   {name:"안심", add:{safe:.60}},
+  easy:   {name:"편안", add:{acc:.50}},
+  nature: {name:"자연", add:{nat:.60}},
+  hard:   {name:"운동 강도", add:{int:.60}},
+};
+const ACT = {walk:{name:"산책",mpm:75,stride:.70}, run:{name:"러닝",mpm:150,stride:1.0}, slow:{name:"천천히",mpm:55,stride:.60}};
+// 러닝: 신호 있는 횡단보도 1곳 = 약 30초 대기 ≈ 80m 더 먼 길, 신호 없는 횡단보도 = 속도 줄임 20m, 혼잡하면 최대 1.8배
+// 자연 조건: 공원·하천에서 먼 길일수록 비용을 올림 (밤에는 약하게, 밤+안심이면 끔)
+const NATURE_PEN = 2.0;
+const natTimeFactor = () => { const h = state.hour; if (h >= 21 || h < 5) return has("safe") ? 0 : .3; if (h >= 19) return has("safe") ? .3 : .6; return 1; };
+const RUN = {sig:80, xw:20, crowd:.8, steps:4, tol:.03};
+// 바로가기
+const PRESETS = {
+  elder: {act:"walk", conds:["easy"]},
+  night: {act:"walk", conds:["safe"], hour:21},
+  park:  {act:"walk", conds:["nature"], day:true},
+  run:   {act:"run",  conds:[], hour:19},
+};
 const LAMBDA = 2, RETURN_PEN = 3, ALLEY_PEN = 2.5, N_CAND = 14, TOL = .05;
 // 골목 회피: 길이 좁을수록 비용을 올림 (안심 모드 > 밤 > 저녁). 보안등이 촘촘한 주택가 골목이
 // 조명 점수만으로는 큰길과 비슷하게 나와 안심 모드가 골목으로 빠지던 문제 보완
 const ROAD_PEN = {safe:3.5, night:1.0, evening:.4};
 // 갈림길에서 자주 꺾는 코스 감점 (안심 모드는 단순한 길을 더 선호)
-const TURN_W = {safe:.025, other:.006};
+const TURN_W = {safe:.025, run:.02, other:.006};
 let baseLayer = null, tilesOk = false;
-const state = {mode:"daily", goal:"min", act:"walk", amount:30, hour:17, start:null, courses:[], sel:0, layer:"plain"};
+const state = {conds:new Set(), goal:"min", act:"walk", amount:30, hour:17, start:null, courses:[], sel:0, layer:"plain"};
 
 const $ = s => document.querySelector(s);
+const has = k => state.conds.has(k);
+const isRun = () => state.act === "run";
+const pace = () => isRun() ? ACT.run : has("easy") ? ACT.slow : ACT.walk;   // 편안 조건 산책은 천천히 걷는 속도
 const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
 
 // ---------- 데이터 ----------
@@ -1006,8 +1048,11 @@ function moveStart(){ startMarker.setLatLng(G.nodes[state.start]); }
 
 // ---------- 코스 엔진 (core.py 이식) ----------
 function weights(){
-  const w = {...MODES[state.mode].w}, h = state.hour;
+  const w = {...BASE_W[state.act]}, h = state.hour;
+  state.conds.forEach(k => { for (const f in COND[k].add) w[f] += COND[k].add[f]; });
   if (h >= 21 || h < 5) w.safe += .35; else if (h >= 19) w.safe += .15;
+  // 밤의 공원·하천변은 사람이 적고 어두워 자연 가산점을 줄임 (안심 조건이면 끔)
+  w.nat *= natTimeFactor();
   const s = Object.values(w).reduce((a,b)=>a+b,0);
   for (const k in w) w[k] /= s;
   return w;
@@ -1015,18 +1060,26 @@ function weights(){
 const isNight = () => state.hour >= 21 || state.hour < 5;
 
 function edgeCosts(relax=false){
-  const w = weights(), elder = !!MODES[state.mode].elder, night = isNight();
-  const roadPen = state.mode === "safe" ? ROAD_PEN.safe : night ? ROAD_PEN.night : state.hour >= 19 ? ROAD_PEN.evening : 0;
+  const w = weights(), elder = has("easy"), night = isNight(), run = isRun();
+  const natPen = has("nature") ? NATURE_PEN*natTimeFactor() : 0;
+  const roadPen = has("safe") ? ROAD_PEN.safe : night ? ROAD_PEN.night : state.hour >= 19 ? ROAD_PEN.evening : 0;
   const m = G.edges.length, cost = new Float64Array(m), score = new Float64Array(m), blocked = new Uint8Array(m);
   for (let i=0;i<m;i++){
     const e = G.edges[i];
-    const sc = (w.env*e[3] + w.safe*e[4] + w.acc*e[5] + w.sens*e[6] + w.int*e[7]) / 100;
+    const sc = (w.env*e[3] + w.safe*e[4] + w.acc*e[5] + w.sens*e[6] + w.int*e[7] + w.nat*(e[12]||0)) / 100;
     score[i] = sc;
     let c = e[2] * (1 + LAMBDA*(1-sc));
     // 편안 모드: 계단·급경사 제외. 출발점 주변이 모두 급경사면(relax) 계단만 빼고 급경사는 비용으로만 피함
     if (elder){ if (e[9]&1) blocked[i] = 1; if (e[9]&32){ if (relax) c *= 4; else blocked[i] = 1; } if (e[9]&4) c *= .6; }
     if (night && (e[9]&2)) c *= ALLEY_PEN;
     if (roadPen) c *= 1 + roadPen*(1 - wideOf(i));
+    if (run){   // 러닝: 신호 대기·혼잡·계단 회피
+      c += RUN.sig*(e[14]||0) + RUN.xw*(e[15]||0);
+      c *= 1 + RUN.crowd*((e[13]||0)/100);
+      if (e[9]&1) c *= RUN.steps;
+    }
+    if (elder) c += 40*(e[15]||0);
+    if (natPen) c *= 1 + natPen*(1 - (e[12]||0)/100);   // 편안: 신호 없는 횡단보도 대신 신호 있는 곳으로 건너게
     cost[i] = c;
   }
   return {cost, score, blocked};
@@ -1060,12 +1113,12 @@ function genLoop(start, target, base, avoid){
   const {score, blocked} = base;
   const cost = Float64Array.from(base.cost);
   // 앞서 고른 코스와 겹치지 않도록. 안심 모드는 큰길이 적은 동네에서 골목으로 밀려나지 않게 약하게
-  const safe = state.mode === "safe";
+  const safe = has("safe");
   const avoidPen = safe ? 1.3 : 1.8;
   // 안심 모드: 큰길이 고리를 이루지 않는 동네에서는 골목으로 도느니 같은 큰길로 돌아오는 편이 안전
   const retPen = safe ? 1.15 : RETURN_PEN;
   avoid.forEach(ei => { cost[ei] *= avoidPen; });
-  const elder = !!MODES[state.mode].elder;
+  const elder = has("easy");
   const lenDist = dijkstra(start, cost, blocked, -1, target*.6, true).dist;
   const out = dijkstra(start, cost, blocked);           // 한 번에 모든 반환점까지의 갈 길
   const rev = G.edges.map(()=>-1);
@@ -1076,6 +1129,8 @@ function genLoop(start, target, base, avoid){
     let ring = [];
     for (let v=0; v<lenDist.length; v++) if (lenDist[v]>=lo && lenDist[v]<=hi) ring.push(v);
     if (elder){ const r2 = ring.filter(v => adj[v].some(ei => G.edges[ei][9]&4)); if (r2.length) ring = r2; }
+    // 자연 조건(낮·저녁): 반환점을 공원·하천에 붙은 지점에서 고름
+    if (has("nature") && natTimeFactor() > .5){ const r3 = ring.filter(v => adj[v].some(ei => (G.edges[ei][12]||0) >= 60)); if (r3.length >= 3) ring = r3; }
     if (!ring.length) break;
     for (let k=0; k<N_CAND/2 && ring.length; k++){
       const t = ring.splice(Math.floor(rand()*ring.length),1)[0];
@@ -1101,9 +1156,10 @@ function genLoop(start, target, base, avoid){
     c.err = Math.abs(c.len-target)/target;
     c.turns = turnsPerKm(c.edges);
   });
-  let ok = cands.filter(c=>c.err<=TOL); if (!ok.length) ok = cands.sort((a,b)=>a.err-b.err).slice(0,3);
-  const tw = state.mode === "safe" ? TURN_W.safe : TURN_W.other;
-  const rw = state.mode === "safe" ? .05 : .35;   // 왕복 감점도 안심 모드는 약하게
+  const tol = isRun() ? RUN.tol : TOL;
+  let ok = cands.filter(c=>c.err<=tol); if (!ok.length) ok = cands.sort((a,b)=>a.err-b.err).slice(0,3);
+  const tw = has("safe") ? TURN_W.safe : isRun() ? TURN_W.run : TURN_W.other;
+  const rw = has("safe") ? .05 : .35;   // 왕복 감점도 안심 모드는 약하게
   const val = c => c.score - .5*c.err - rw*c.retrace - tw*c.turns;
   return ok.reduce((a,b) => val(b) > val(a) ? b : a);
 }
@@ -1135,24 +1191,25 @@ function orient(c){
   if (!G.hasElevation) return c;
   const rv = revKey(); if (c.edges.some(ei => rv[ei] < 0)) return c;
   const upF = Math.max(0,...c.edges.map(grade)), upR = Math.max(0,...c.edges.map(ei => -grade(ei)));
-  const wantSteep = state.mode === "hard";
+  const wantSteep = has("hard");
   const flip = wantSteep ? upR > upF + .005 : upR + .005 < upF;
   if (flip){ c.edges = c.edges.slice().reverse().map(ei => rv[ei]); c.flipped = true; }
   return c;
 }
 function stats(c){
-  const a = ACT[state.act]; let lit=0, major=0, dark=0, steps=0, rest=0, toilet=false, lastRest=false;
+  const a = pace(); let lit=0, major=0, dark=0, steps=0, rest=0, toilet=false, lastRest=false, nat=0, sig=0, xw=0;
   let up=0, maxUp=0; const prof=[[0, Z(G.edges[c.edges[0]][0])]]; let acc=0;
   c.edges.forEach(ei => { const e=G.edges[ei], dz=Z(e[1])-Z(e[0]); if (dz>0) up+=dz; maxUp=Math.max(maxUp, grade(ei)); acc+=e[2]; prof.push([acc, Z(e[1])]); });
   c.edges.forEach(ei => { const e=G.edges[ei], L=e[2];
     if (e[8]>=50) lit+=L; if (e[9]&8) major+=L; if (e[9]&2) dark+=L; if (e[9]&1) steps++;
+    if ((e[12]||0)>=50) nat+=L; sig += e[14]||0; xw += e[15]||0;
     const r = !!(e[9]&4); if (r && !lastRest) rest++; lastRest = r; if (e[9]&16) toilet = true; });
-  const slow = 1 + up/c.len*6;          // 오르막만큼 시간 보정
-  return {km:c.len/1000, min:Math.round(c.len/a.mpm*slow), steps:Math.round(c.len/a.stride), lit:lit/c.len, major:major/c.len, dark:Math.round(dark), stairs:steps, rest, toilet, up:Math.round(up), maxUp, prof};
+  const slow = 1 + up/c.len*6 + (isRun() ? sig*25/c.len : 0);   // 오르막·신호 대기만큼 시간 보정
+  return {km:c.len/1000, min:Math.round(c.len/a.mpm*slow), steps:Math.round(c.len/a.stride), lit:lit/c.len, major:major/c.len, dark:Math.round(dark), stairs:steps, rest, toilet, up:Math.round(up), maxUp, prof, nat:nat/c.len, sig, xw};
 }
 
 function targetMeters(){
-  const a = ACT[state.act];
+  const a = pace();
   if (state.goal==="min") return state.amount*a.mpm;
   if (state.goal==="steps") return state.amount*a.stride;
   return state.amount*1000;
@@ -1169,7 +1226,7 @@ function run(){
     const overlap = (a, b) => { const sb = new Set(b.edges); let L=0; a.edges.forEach(ei => { if (sb.has(ei)) L += G.edges[ei][2]; }); return L / a.len; };
     for (let k=0, tries=0; k<3 && tries<8; tries++){
       let c = genLoop(state.start, target, base, avoid);
-      if (!c && !out.length && MODES[state.mode].elder && !relaxed){ relaxed = true; base = edgeCosts(true); c = genLoop(state.start, target, base, avoid); }
+      if (!c && !out.length && has("easy") && !relaxed){ relaxed = true; base = edgeCosts(true); c = genLoop(state.start, target, base, avoid); }
       if (!c) break;
       c.edges.forEach(ei => avoid.add(ei));
       // 앞 코스와 70% 넘게 겹치면 버리고 다시 (같은 코스가 여러 개 나오던 문제)
@@ -1222,21 +1279,24 @@ function drawRoutes(){
 function renderCards(){
   const box = $("#results"); box.innerHTML = "";
   if (!state.courses.length){ box.innerHTML = '<div class="empty">이 조건으로는 코스를 만들지 못했어요. 목표를 줄이거나 출발점을 바꿔 보세요.</div>'; return; }
-  const cols = ["var(--c1)","var(--c2)","var(--c3)"], elder = !!MODES[state.mode].elder;
+  const cols = ["var(--c1)","var(--c2)","var(--c3)"], elder = has("easy");
   state.courses.forEach((c,i) => {
     const s = c.st, b = document.createElement("button");
     b.className = "course"; b.style.setProperty("--cc", cols[i]); b.setAttribute("aria-pressed", i===state.sel);
     const chips = [];
-    if (state.mode === "safe" && c.retrace >= .5) chips.push('<span class="chip ok">같은 큰길로 왕복</span>');
+    if (has("safe") && c.retrace >= .5) chips.push('<span class="chip ok">같은 큰길로 왕복</span>');
     if (c.relaxed) chips.push('<span class="chip warn">주변이 언덕이라 급경사 일부 포함</span>');
+    if (has("nature")) chips.push(s.nat>=.4 ? '<span class="chip ok">공원·하천 '+Math.round(s.nat*100)+'%</span>' : '<span class="chip warn">자연 구간 적음</span>');
+    if (isRun()) chips.push(s.sig/s.km<=1.5 ? '<span class="chip ok">신호 대기 '+s.sig+'곳</span>' : '<span class="chip warn">신호 대기 '+s.sig+'곳</span>');
+    if (elder && s.xw) chips.push('<span class="chip warn">신호 없는 횡단보도 '+s.xw+'곳</span>');
     if (isNight()) chips.push(s.dark<=150 ? '<span class="chip ok">어두운 골목 적음</span>' : '<span class="chip warn">어두운 골목 '+s.dark+'m</span>');
     if (elder) chips.push(s.stairs===0 ? '<span class="chip ok">계단 없음</span>' : '<span class="chip warn">계단 '+s.stairs+'곳</span>');
     if (G.hasElevation){
       if (elder) chips.push(s.maxUp<=.08 ? '<span class="chip ok">급경사 없음</span>' : '<span class="chip warn">급경사 있음</span>');
-      if (state.mode==="hard") chips.push(s.up>=25 ? '<span class="chip ok">언덕 포함</span>' : '<span class="chip warn">평탄한 편</span>');
+      if (has("hard")) chips.push(s.up>=25 ? '<span class="chip ok">언덕 포함</span>' : '<span class="chip warn">평탄한 편</span>');
     }
     b.innerHTML = `<span class="swatch"></span><h3>코스 ${i+1}</h3><span class="big">${s.km.toFixed(2)}km · ${s.min}분</span>
-      <div class="facts"><span>걸음 <b>${s.steps.toLocaleString()}</b></span>${G.hasLightData?`<span>조명 <b>${Math.round(s.lit*100)}%</b></span>`:''}<span>큰길 <b>${Math.round(s.major*100)}%</b></span><span>쉼터 <b>${s.rest}</b>곳</span>${G.hasElevation?`<span>오르막 <b>${s.up}m</b></span><span>최대 경사 <b>${Math.round(s.maxUp*100)}%</b></span>`:''}${s.toilet?'<span>화장실 경유</span>':''} ${chips.join(" ")}</div>${(i===state.sel && LAYERS[state.layer]) ? segBar(c, state.layer) : ''}${(i===state.sel && G.hasElevation) ? profileSVG(s.prof) : ''}`;
+      <div class="facts"><span>걸음 <b>${s.steps.toLocaleString()}</b></span>${G.hasLightData?`<span>조명 <b>${Math.round(s.lit*100)}%</b></span>`:''}<span>큰길 <b>${Math.round(s.major*100)}%</b></span><span>자연 <b>${Math.round(s.nat*100)}%</b></span><span>쉼터 <b>${s.rest}</b>곳</span>${G.hasElevation?`<span>오르막 <b>${s.up}m</b></span><span>최대 경사 <b>${Math.round(s.maxUp*100)}%</b></span>`:''}${s.toilet?'<span>화장실 경유</span>':''} ${chips.join(" ")}</div>${(i===state.sel && LAYERS[state.layer]) ? segBar(c, state.layer) : ''}${(i===state.sel && G.hasElevation) ? profileSVG(s.prof) : ''}`;
     b.addEventListener("click", () => select(i));
     box.appendChild(b);
   });
@@ -1377,7 +1437,7 @@ function onPos(ll, acc){
   updateNavUI();
 }
 function updateNavUI(){
-  const n = nav, left = n.total - n.prog, a = ACT[state.act];
+  const n = nav, left = n.total - n.prog, a = pace();
   const k = n.man.findIndex(m => m.d > n.prog + 3), m = n.man[k], dist = m.d - n.prog;
   $("#nav-turn").textContent = m.icon; $("#nav-text").textContent = m.text; $("#nav-dist").textContent = fmtM(dist);
   $("#nav-fill").style.width = (n.prog/n.total*100).toFixed(1)+"%";
@@ -1413,7 +1473,7 @@ function startNav(src){
   try { navigator.wakeLock && navigator.wakeLock.request("screen").then(l => nav && (nav.lock = l)).catch(()=>{}); } catch(e){}
   if (src === "sim"){
     $("#nav-src").textContent = `모의 안내 ×${SIM_SPEED}`;
-    let d = 0; const mps = ACT[state.act].mpm/60*SIM_SPEED, dt = .3;
+    let d = 0; const mps = pace().mpm/60*SIM_SPEED, dt = .3;
     say("모의 안내를 시작해요");
     nav.sim = setInterval(() => {
       d = Math.min(nav.total, d + mps*dt); const p = nav.at(d);
@@ -1456,6 +1516,7 @@ const LAYERS = {
   lit:    {lo:"어두움", hi:"밝음", val: ei => G.edges[ei][8]/100},
   access: {lo:"불편", hi:"편함", val: ei => (G.edges[ei][9]&1) ? 0 : G.edges[ei][5]/100},
   slope:  {lo:"가파름", hi:"평탄", val: ei => 1 - Math.min(1, Math.abs(grade(ei))/.12)},
+  nature: {lo:"도심", hi:"공원·하천", val: ei => (G.edges[ei][12]||0)/100},
 };
 // 연속된 같은 종류 구간을 하나로 묶어 표시 위치(가운데)와 길이를 돌려줌
 function runs(c, test){
@@ -1490,6 +1551,10 @@ function courseTags(c, mode){
   if (mode === "access" || mode === "slope"){
     runs(c, ei => (G.edges[ei][9]&1) ? {key:"st"} : null).forEach(r => tags.push({ll:midOf(r.eis), text:"계단", color:bad}));
   }
+  if (mode === "nature"){
+    runs(c, ei => (G.edges[ei][12]||0) >= 50 ? {key:"nat"} : null).filter(r => r.len >= 100)
+      .forEach(r => tags.push({ll:midOf(r.eis), text:`공원·하천 ${Math.round(r.len)}m`, color:good}));
+  }
   if (mode === "access"){
     runs(c, ei => (G.edges[ei][9]&16) ? {key:"wc"} : null).forEach(r => tags.push({ll:midOf(r.eis), text:"화장실", color:good}));
     runs(c, ei => (G.edges[ei][9]&4) ? {key:"rest"} : null).filter(r => r.len >= 60)
@@ -1507,6 +1572,7 @@ function segBar(c, mode){
   if (mode === "lit"){ const d = c.edges.reduce((a,ei)=>a+(G.edges[ei][8]<50?G.edges[ei][2]:0),0); note = d < 1 ? "어두운 구간 없음" : `어두운 구간 <b>${Math.round(d)}m</b>`; }
   if (mode === "slope"){ const up = runs(c, ei => grade(ei) > .08 ? {key:"s"} : null).length; note = up ? `8% 넘는 오르막 <b>${up}</b>곳` : "8% 넘는 오르막 없음"; }
   if (mode === "access"){ const st = runs(c, ei => (G.edges[ei][9]&1) ? {key:"s"} : null).length; note = st ? `계단 <b>${st}</b>곳` : "계단 없음"; }
+  if (mode === "nature"){ const d = c.edges.reduce((a,ei)=>a+((G.edges[ei][12]||0)>=50?G.edges[ei][2]:0),0); note = d < 1 ? "공원·하천 구간 없음" : `공원·하천 구간 <b>${Math.round(d)}m</b>`; }
   return `<div class="seg-bar"><div class="strip" role="img" aria-label="코스 구간별 ${mode==="lit"?"조명":mode==="slope"?"경사":"접근성"}">${cells}</div>
     <div class="cap"><span>출발</span><span>${note}</span><span>도착</span></div></div>`;
 }
@@ -1540,13 +1606,20 @@ function amountUI(){
 function timeUI(){
   $("#hour").value = state.hour; $("#hour-val").textContent = String(state.hour).padStart(2,"0")+":00";
   const n = $("#time-note");
-  if (isNight()){ n.className = "time-note night"; n.innerHTML = "<b>야간 안전 모드</b> 자동 적용 · 밝은 큰길 우선, 어두운 골목 회피"; }
+  if (isNight()){ n.className = "time-note night"; n.innerHTML = "<b>야간 안전 모드</b> 자동 적용 · 밝은 큰길 우선, 어두운 골목·밤 공원 회피"; }
   else if (state.hour >= 19){ n.className = "time-note night"; n.innerHTML = "<b>저녁</b> · 안전 가중치를 조금 올려요"; }
-  else { n.className = "time-note"; n.textContent = "낮 시간 · 고른 모드 그대로 코스를 만들어요"; }
+  else { n.className = "time-note"; n.textContent = "낮 시간 · 고른 조건 그대로 코스를 만들어요"; }
 }
 function bindUI(){
   const seg = (sel, key, after) => document.querySelectorAll(sel+" button").forEach(b => b.addEventListener("click", () => { state[key] = b.dataset.v; setPressed(sel, b.dataset.v); after && after(); run(); }));
-  seg("#mode","mode"); seg("#act","act");
+  seg("#act","act", () => { actUI(); presetUI(); });
+  document.querySelectorAll("#conds button").forEach(b => b.addEventListener("click", () => {
+    const k = b.dataset.v;
+    if (has(k)) state.conds.delete(k);
+    else { state.conds.add(k); if (k==="easy") state.conds.delete("hard"); if (k==="hard") state.conds.delete("easy"); }   // 편안과 운동 강도는 함께 못 고름
+    condUI(); presetUI(); run();
+  }));
+  document.querySelectorAll("#presets button").forEach(b => b.addEventListener("click", () => applyPreset(b.dataset.p)));
   seg("#goal","goal", () => { state.amount = {min:30, steps:3200, km:3}[state.goal]; amountUI(); });
   $("#amount").addEventListener("input", e => { state.amount = +e.target.value; amountUI(); });
   $("#amount").addEventListener("change", run);
@@ -1556,19 +1629,43 @@ function bindUI(){
   let t; $("#nl").addEventListener("input", e => { clearTimeout(t); t = setTimeout(() => { parseNL(e.target.value); run(); }, 600); });
   $("#nl").addEventListener("keydown", e => { if (e.key==="Enter"){ clearTimeout(t); parseNL(e.target.value); run(); } });
   document.querySelectorAll(".layer-switch button").forEach(b => b.addEventListener("click", () => { state.layer = b.dataset.v; setPressed(".layer-switch", b.dataset.v); styleStreets(); drawRoutes(); renderCards(); }));
-  amountUI(); timeUI();
+  amountUI(); timeUI(); actUI(); condUI(); presetUI();
+}
+function actUI(){
+  setPressed("#act", state.act);
+  $("#act-hint").textContent = isRun()
+    ? "러닝: 신호 대기·혼잡한 길·잦은 꺾임을 피하고, 거리를 ±3%로 맞춰요."
+    : "산책: 자연·쉼터를 챙겨요. 편안을 고르면 천천히 걷는 속도로 계산해요.";
+}
+function condUI(){ document.querySelectorAll("#conds button").forEach(b => b.setAttribute("aria-pressed", has(b.dataset.v))); }
+function presetUI(){
+  document.querySelectorAll("#presets button").forEach(b => {
+    const p = PRESETS[b.dataset.p];
+    const same = p.act === state.act && p.conds.length === state.conds.size && p.conds.every(has);
+    b.setAttribute("aria-pressed", same);
+  });
+}
+function applyPreset(name){
+  const p = PRESETS[name];
+  state.act = p.act; state.conds = new Set(p.conds);
+  if (p.hour) state.hour = p.hour;
+  if (p.day && isNight()) state.hour = 17;
+  $("#nl").value = ""; $("#parsed").innerHTML = "";   // 바로가기를 누르면 이전 문장 해석은 지움
+  actUI(); condUI(); presetUI(); timeUI(); run();
 }
 
 // 데모용 키워드 해석 (실서비스는 LLM이 조건으로 변환)
 function parseNL(s){
   const got = [];
   const num = re => { const m = s.replace(/,/g,"").match(re); return m ? parseFloat(m[1]) : null; };
-  if (/무릎|어르신|계단|편한|편하게|천천|(언덕|오르막).{0,3}(없|빼|피)|평지/.test(s)){ state.mode="easy"; got.push("편안 모드"); }
-  else if (/밤|어두|밝은|안전|무서|늦/.test(s)){ state.mode="safe"; got.push("안심 모드"); }
-  else if (/(언덕|오르막).{0,3}(있|포함|많)|도전|빡세|힘들|강도/.test(s)){ state.mode="hard"; got.push("도전 모드"); }
-  if (/뛰|러닝|달리|조깅/.test(s)){ state.act="run"; got.push("달리기"); }
-  else if (/천천|산책|어르신|무릎/.test(s)){ state.act="slow"; got.push("천천히"); }
-  else if (/걷/.test(s)){ state.act="walk"; got.push("걷기"); }
+  if (/뛰|러닝|달리|조깅/.test(s)){ state.act="run"; got.push("러닝"); }
+  else if (/걷|산책|어르신|무릎/.test(s)){ state.act="walk"; got.push("산책"); }
+  const found = [];
+  if (/무릎|어르신|계단|편한|편하게|천천|(언덕|오르막).{0,3}(없|빼|피)|평지/.test(s)) found.push("easy");
+  if (/밤|어두|밝은|안전|무서|늦/.test(s)) found.push("safe");
+  if (/공원|하천|숲|강변|한강|자연|나무|천변|물가|초록/.test(s)) found.push("nature");
+  if (!found.includes("easy") && /(언덕|오르막).{0,3}(있|포함|많)|도전|빡세|힘들|강도|훈련/.test(s)) found.push("hard");
+  if (found.length){ state.conds = new Set(found); found.forEach(k => got.push(COND[k].name)); }
   const km = num(/(\d+(?:\.\d+)?)\s*(?:km|킬로)/i), mins = num(/(\d+)\s*분/), steps = num(/(\d+)\s*보/), hr = num(/(\d+)\s*시간/);
   if (steps){ state.goal="steps"; state.amount=steps; got.push(steps.toLocaleString()+"보"); }
   else if (km){ state.goal="km"; state.amount=km; got.push(km+"km"); }
@@ -1576,7 +1673,7 @@ function parseNL(s){
   if (/밤|늦/.test(s) && state.hour < 21){ state.hour = 21; got.push("21시 출발"); }
   if (/낮|오후/.test(s)){ state.hour = 15; got.push("15시 출발"); }
   if (/아침|새벽/.test(s)){ state.hour = 7; got.push("7시 출발"); }
-  setPressed("#mode",state.mode); setPressed("#act",state.act); setPressed("#goal",state.goal); amountUI(); timeUI();
+  setPressed("#goal",state.goal); amountUI(); timeUI(); actUI(); condUI(); presetUI();
   $("#parsed").innerHTML = got.map(g => `<span>${g}</span>`).join("");
 }
 })();
