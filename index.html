@@ -704,6 +704,8 @@ body{background:var(--bg);color:var(--ink);font-family:var(--font);font-size:14p
 header.brand{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
 .brand h1{margin:0;font-size:26px;font-weight:700;letter-spacing:-0.02em}
 .brand p{margin:0;color:var(--ink-2);font-size:13px}
+.region{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);border-radius:999px;padding:1px 4px 1px 9px;font-size:11px;font-weight:600;letter-spacing:.06em;color:var(--ink-2)}
+.region select{font:inherit;font-size:12px;font-weight:600;letter-spacing:0;color:var(--ink);background:transparent;border:0;padding:3px 2px;cursor:pointer}
 .demo-tag{font-size:11px;font-weight:600;letter-spacing:.06em;color:var(--ink-2);border:1px solid var(--line);border-radius:999px;padding:1px 8px}
 .ask{display:flex;flex-direction:column;gap:8px}
 .ask label,.group>label,.group .label{font-size:12px;font-weight:600;letter-spacing:.04em;color:var(--ink-2)}
@@ -812,7 +814,7 @@ header.brand{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
   <aside class="side">
     <div class="side-scroll">
       <header class="brand">
-        <h1>오늘길</h1><span class="demo-tag">DEMO · 서울 강남 양재천 일대</span>
+        <h1>오늘길</h1><label class="region">DEMO<select id="region" aria-label="지역 선택"></select></label>
         <p>오늘 어디를, 어떻게 걸을지. 조건만 고르면 집 앞에서 출발해 돌아오는 코스를 만들어요.</p>
       </header>
 
@@ -875,9 +877,9 @@ header.brand{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
       </div>
 
       <div class="how">
-        <p><b>어떻게 고르나요?</b> 대치·도곡·개포 일대 길 2,100여 개에 환경·안전·접근성·소음 회피·운동 강도 점수를 매기고, 고른 모드와 출발 시각에 따라 가중치를 다르게 합산해 점수가 높은 길 위주로 돌아오는 코스를 찾아요. 21시 이후에는 안전 가중치가 자동으로 올라가고 어두운 골목을 피해요.</p>
-        <p><b>오르막·내리막</b> 고도 타일로 길마다 경사를 계산해요. 편안 모드는 경사 8%가 넘는 길을 빼고, 도전 모드는 언덕을 일부러 넣어요. 같은 코스라도 오르막이 덜 가파른 방향으로 돌도록 방향을 정해요.</p>
-        <p>데이터: OpenStreetMap 도로망·시설, 서울시 가로등 위치, 강남구 보안등(지번 주소를 좌표로 변환), Mapzen Terrain Tiles 고도. 보안등 좌표는 필지 기준이라 실제 위치와 수십 미터 차이가 날 수 있어요.</p>
+        <p><b>어떻게 고르나요?</b> <span id="how-area">이 지역</span> 일대 길 <span id="how-n"></span>개에 환경·안전·접근성·소음 회피·운동 강도 점수를 매기고, 고른 모드와 출발 시각에 따라 가중치를 다르게 합산해 점수가 높은 길 위주로 돌아오는 코스를 찾아요. 21시 이후에는 안전 가중치가 자동으로 올라가고 어두운 골목을 피해요.</p>
+        <p id="how-slope"><b>오르막·내리막</b> 고도 타일로 길마다 경사를 계산해요. 편안 모드는 경사 8%가 넘는 길을 빼고, 도전 모드는 언덕을 일부러 넣어요. 같은 코스라도 오르막이 덜 가파른 방향으로 돌도록 방향을 정해요.</p>
+        <p>데이터: OpenStreetMap 도로망·시설, <span id="how-lights"></span> <span id="how-elev">고도는 Mapzen Terrain Tiles.</span></p>
       </div>
     </div>
   </aside>
@@ -925,12 +927,30 @@ const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).
 
 // ---------- 데이터 ----------
 let G, adj, map, streetLayer, routeLayers = [], startMarker, walker;
-fetch("graph.json").then(r => r.json()).then(init).catch(() => {
+// 지역 목록을 읽고, 주소의 ?region= 값(없으면 첫 지역)의 데이터를 불러옴
+let REGION = null;
+fetch("regions.json").then(r => r.json()).then(list => {
+  const want = new URLSearchParams(location.search).get("region");
+  REGION = list.find(r => r.id === want) || list[0];
+  const sel = $("#region");
+  list.forEach(r => { const o = document.createElement("option"); o.value = r.id; o.textContent = r.name; sel.appendChild(o); });
+  sel.value = REGION.id;
+  sel.addEventListener("change", () => { const u = new URL(location.href); u.searchParams.set("region", sel.value); location.href = u.toString(); });
+  document.title = "오늘길 · " + REGION.name;
+  return fetch(REGION.file);
+}).then(r => r.json()).then(init).catch(() => {
   $("#loading").textContent = "지도 데이터를 불러오지 못했어요. 새로고침해 주세요.";
 });
 
 function init(data){
   G = data;
+  $("#how-area").textContent = REGION.area; $("#how-n").textContent = (Math.round(data.geo.length/100)*100).toLocaleString()+"여";
+  $("#how-lights").textContent = REGION.lights;
+  if (!data.hasElevation){
+    $("#how-slope").hidden = true; $("#how-elev").textContent = "이 지역은 아직 고도 데이터가 없어 경사는 반영하지 않았어요.";
+    document.querySelector('.layer-switch button[data-v="slope"]').hidden = true;
+    document.querySelector(".credit").textContent = "© OpenStreetMap contributors";
+  }
   const n = G.nodes.length;
   adj = Array.from({length:n}, () => []);
   G.edges.forEach((e,i) => adj[e[0]].push(i));
