@@ -1,6 +1,23 @@
 [
-  {"id": "gangnam", "name": "강남 양재천 일대", "area": "대치·도곡·개포", "file": "data/gangnam.json",
-   "lights": "서울시 가로등 위치, 강남구 보안등(지번 주소를 좌표로 변환). 보안등 좌표는 필지 기준이라 실제 위치와 수십 미터 차이가 날 수 있어요."},
-  {"id": "dongjak", "name": "동작 노량진·상도·흑석", "area": "노량진·상도·흑석", "file": "data/dongjak.json",
-   "lights": "서울시 가로등 위치, 동작구 보안등 설치 좌표."}
+ {
+  "id": "gangnam",
+  "name": "강남 양재천 일대",
+  "area": "대치·도곡·개포",
+  "file": "data/gangnam.json",
+  "lights": "서울시 가로등 위치, 강남구 보안등(지번 주소를 좌표로 변환). 보안등 좌표는 필지 기준이라 실제 위치와 수십 미터 차이가 날 수 있어요."
+ },
+ {
+  "id": "dongjak",
+  "name": "동작 노량진·상도·흑석",
+  "area": "노량진·상도·흑석",
+  "file": "data/dongjak.json",
+  "lights": "서울시 가로등 위치, 동작구 보안등 설치 좌표."
+ },
+ {
+  "id": "seocho",
+  "name": "서초 잠원·반포",
+  "area": "잠원·반포·신사",
+  "file": "data/seocho.json",
+  "lights": "서울시 가로등 위치, 서초구 보안등 설치 좌표."
+ }
 ]
