@@ -704,7 +704,7 @@ svg.leaflet-image-layer.leaflet-interactive path {
   --good:#4ADE80; --warn:#FBBF24; --bad:#F87171; color-scheme:dark}
 html,body{height:100%;margin:0}
 body{background:var(--bg);color:var(--ink);font-family:var(--font);font-size:14px;line-height:1.5}
-.app{height:100%;display:grid;grid-template-columns:400px 1fr}
+.app{height:100%;display:grid;grid-template-columns:420px 1fr}
 .side{display:flex;flex-direction:column;min-width:0;min-height:0;background:var(--panel);border-right:1px solid var(--line)}
 .side-scroll{overflow-y:auto;flex:1;padding-block:20px 28px;padding-left:max(20px,env(safe-area-inset-left,0px));padding-right:20px;display:flex;flex-direction:column;gap:20px}
 header.brand{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
@@ -809,14 +809,65 @@ header.brand{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
 .layer-hint{position:absolute;z-index:500;top:calc(52px + env(safe-area-inset-top,0px));right:max(12px,env(safe-area-inset-right,0px));background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:4px 10px;font-size:11px;color:var(--ink-2)}
 .layer-hint[hidden]{display:none}
 .loading{position:absolute;inset:0;display:grid;place-items:center;z-index:600;background:var(--map);color:var(--ink-2);font-size:13px}
+/* 3단계 화면: setup(조건) → courses(코스) → nav(길 안내) */
+.screen{display:flex;flex-direction:column;flex:1;min-height:0}
+.screen[hidden]{display:none}
+.side-foot{padding:12px 20px calc(16px + env(safe-area-inset-bottom,0px));border-top:1px solid var(--line);background:var(--panel);display:flex;flex-direction:column;gap:8px}
+.card{background:var(--bg);border-radius:14px;padding:14px;display:flex;flex-direction:column;gap:10px}
+.card .label,.card-row .label{font-size:13px;font-weight:600;color:var(--ink-2)}
+.card-row{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.pills{display:flex;gap:4px}
+.pills button{font:inherit;font-size:12px;color:var(--ink-2);background:var(--panel);border:1px solid var(--line);border-radius:999px;padding:5px 10px;cursor:pointer}
+.pills button[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:var(--panel);font-weight:600}
+.seg.conds{grid-template-columns:repeat(2,1fr)}
+.seg.conds button{align-items:flex-start;text-align:left;padding:10px 12px;font-size:15px;font-weight:600}
+.seg.two button{font-size:15px;font-weight:600;padding:11px 4px}
+hr.div{border:0;border-top:1px solid var(--line);margin:2px 0;width:100%}
+.start-sum{display:flex;flex-direction:column;gap:2px}
+.start-sum b{font-size:15px}
+.start-more{display:flex;flex-direction:column;gap:10px}
+.start-more[hidden]{display:none}
+.linkbtn{font:inherit;font-size:13px;font-weight:600;color:var(--accent);background:var(--accent-soft);border:0;border-radius:999px;padding:7px 12px;cursor:pointer;align-self:flex-start}
+.linkbtn.ghost{background:transparent;padding:2px 0;text-decoration:underline}
+details.how{font-size:12px;color:var(--ink-2);border-top:1px solid var(--line);padding-top:12px}
+details.how summary{cursor:pointer;font-weight:600;font-size:13px;color:var(--ink)}
+details.how p{margin:8px 0 0}
+.topbar{display:flex;align-items:center;gap:10px;padding:12px 16px;border-bottom:1px solid var(--line);background:var(--panel)}
+.back{width:44px;height:44px;flex:0 0 44px;border-radius:12px;border:0;background:var(--bg);color:var(--ink);display:grid;place-items:center;cursor:pointer}
+.topbar-text{display:flex;flex-direction:column;gap:2px;min-width:0}
+.topbar-text b{font-size:16px}
+.topbar-text span{font-size:12px;color:var(--ink-2)}
+.course .tags{grid-column:2/4;display:flex;flex-wrap:wrap;gap:4px}
+.course .more{grid-column:1/4;display:flex;flex-direction:column;gap:8px;border-top:1px dashed var(--line);padding-top:8px;margin-top:4px}
+.course .more .facts{grid-column:auto}
+.foot-hint{margin:0;text-align:center;font-size:14px;color:var(--ink-2);padding:14px;border:1px dashed var(--line);border-radius:var(--r)}
+.sub-link{font:inherit;font-size:13px;color:var(--ink-2);background:none;border:0;text-decoration:underline;cursor:pointer;align-self:center;padding:4px}
+.app:not([data-screen="courses"]) .layer-switch,.app:not([data-screen="courses"]) .legend,.app:not([data-screen="courses"]) .layer-hint{display:none}
+.app[data-screen="nav"]{grid-template-columns:1fr}
+.app[data-screen="nav"] .side{display:none}
+/* 길 안내: 위 = 다음 갈림길, 아래 = 상태와 버튼(엄지가 닿는 곳) */
+.nav{background:var(--accent);color:var(--accent-ink);border:0;border-radius:18px;left:max(12px,calc(50% - 240px));width:min(480px,calc(100% - 24px))}
+.nav .nav-turn{background:rgba(255,255,255,.16);color:var(--accent-ink)}
+.nav .nav-dist{font-size:30px}
+.nav .nav-text{font-size:17px}
+.nav-sheet{position:absolute;z-index:700;left:0;right:0;bottom:0;background:var(--panel);color:var(--ink);border-radius:20px 20px 0 0;box-shadow:0 -4px 16px rgba(0,0,0,.14);padding:16px max(16px,calc(50% - 240px)) calc(20px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:12px}
+.nav-sheet[hidden]{display:none}
+.nav-sheet .nav-meta{font-size:14px}
+.nav-sheet .nav-meta b{font-size:20px}
+.nav-sheet .nav-btns button{font-size:15px;padding:13px 6px;border-radius:12px}
+.nav-sheet .nav-btns button.end{background:#FDECEC;border-color:#FDECEC}
+.nav-center{position:absolute;z-index:700;right:16px;bottom:200px;width:48px;height:48px;border-radius:50%;background:var(--panel);color:#2F64D6;border:1px solid var(--line);box-shadow:0 2px 8px rgba(0,0,0,.15);display:grid;place-items:center;cursor:pointer}
+.nav-center[hidden]{display:none}
+.app[data-screen="nav"] .credit{bottom:auto;top:calc(150px + env(safe-area-inset-top,0px))}
 @media (max-width:820px){
-  .app{grid-template-columns:1fr;grid-template-rows:52vh 1fr}
-  .mapwrap{order:-1}
-  .side{border-right:0;border-top:1px solid var(--line)}
-  .app.navigating{grid-template-rows:74vh 1fr}
-  .nav{left:12px;width:calc(100% - 24px)}
-  .mapwrap.navigating .leaflet-control-zoom{display:none}
+  .app{grid-template-columns:1fr;grid-template-rows:1fr}
+  .app[data-screen="setup"] .mapwrap{display:none}
+  .app[data-screen="courses"]{grid-template-rows:300px 1fr}
+  .app[data-screen="courses"] .mapwrap{order:-1}
+  .side{border-right:0}
+  .app[data-screen="nav"] .leaflet-control-zoom{display:none}
   .side-scroll{padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+  .side-foot{padding-left:16px;padding-right:16px}
 }
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 </style>
@@ -824,94 +875,100 @@ header.brand{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
 <body>
 
 
-<div class="app">
+<div class="app" data-screen="setup">
   <aside class="side">
-    <div class="side-scroll">
-      <header class="brand">
-        <h1>오늘길</h1><label class="region">DEMO<select id="region" aria-label="지역 선택"></select></label><button class="install" id="install" hidden>앱으로 설치</button>
-        <p class="install-hint" id="ios-hint" hidden>아이폰: 아래 공유 버튼 → ‘홈 화면에 추가’를 누르면 앱처럼 쓸 수 있어요</p>
-        <p>오늘 어디를, 어떻게 걸을지. 조건만 고르면 집 앞에서 출발해 돌아오는 코스를 만들어요.</p>
-      </header>
 
-      <div class="ask">
-        <label for="nl">말로 요청하기</label>
-        <div class="ask-row">
-          <input id="nl" type="text" value="언덕 없이 편한 길로 30분 걷기" autocomplete="off">
+    <!-- ① 조건 고르기 -->
+    <section class="screen" id="scr-setup" aria-label="조건 고르기">
+      <div class="side-scroll">
+        <header class="brand">
+          <h1>오늘길</h1><label class="region">DEMO<select id="region" aria-label="지역 선택"></select></label><button class="install" id="install" hidden>앱으로 설치</button>
+          <p class="install-hint" id="ios-hint" hidden>아이폰: 아래 공유 버튼 → ‘홈 화면에 추가’를 누르면 앱처럼 쓸 수 있어요</p>
+        </header>
+
+        <div class="ask">
+          <label for="nl">오늘은 어떻게 걷고 싶나요?</label>
+          <input id="nl" type="text" placeholder="예: 밤이라 밝은 길로 20분" autocomplete="off" enterkeyhint="done">
+          <div class="parsed" id="parsed"></div>
         </div>
-        <div class="parsed" id="parsed"></div>
-        <span class="hint">데모에서는 키워드로 해석해요. 예: "밤이라 밝은 길로 30분", "공원이나 하천 따라 산책", "신호 적은 5km 러닝"</span>
-      </div>
 
-      <div class="group">
-        <span class="label" id="lbl-preset">바로가기</span>
-        <div class="presets" role="group" aria-labelledby="lbl-preset" id="presets">
+        <div class="presets" role="group" aria-label="바로가기" id="presets">
           <button data-p="elder" aria-pressed="false">어르신 추천</button>
           <button data-p="night" aria-pressed="false">밤 산책</button>
           <button data-p="park" aria-pressed="false">공원·하천 산책</button>
           <button data-p="run" aria-pressed="false">퇴근 후 러닝</button>
         </div>
-      </div>
 
-      <div class="group">
-        <span class="label" id="lbl-act">활동</span>
-        <div class="seg two" role="group" aria-labelledby="lbl-act" id="act">
-          <button data-v="walk" aria-pressed="true">산책<small>걷기</small></button>
-          <button data-v="run" aria-pressed="false">러닝<small>달리기</small></button>
+        <div class="card">
+          <span class="label" id="lbl-act">활동</span>
+          <div class="seg two" role="group" aria-labelledby="lbl-act" id="act">
+            <button data-v="walk" aria-pressed="true">산책</button>
+            <button data-v="run" aria-pressed="false">러닝</button>
+          </div>
+          <span class="hint" id="act-hint"></span>
+          <span class="label" id="lbl-cond">우선 조건 <small>· 여러 개 선택</small></span>
+          <div class="seg conds" role="group" aria-labelledby="lbl-cond" id="conds">
+            <button data-v="safe" aria-pressed="false">안심<small>밝은 큰길</small></button>
+            <button data-v="easy" aria-pressed="false">편안<small>계단·언덕 없이</small></button>
+            <button data-v="nature" aria-pressed="false">자연<small>공원·하천</small></button>
+            <button data-v="hard" aria-pressed="false">운동 강도<small>언덕 포함</small></button>
+          </div>
         </div>
-        <span class="hint" id="act-hint"></span>
-      </div>
 
-      <div class="group">
-        <span class="label" id="lbl-cond">우선 조건 <small>여러 개 고를 수 있어요</small></span>
-        <div class="seg" role="group" aria-labelledby="lbl-cond" id="conds">
-          <button data-v="safe" aria-pressed="false">안심<small>밝은 큰길</small></button>
-          <button data-v="easy" aria-pressed="false">편안<small>계단·언덕 없이</small></button>
-          <button data-v="nature" aria-pressed="false">자연<small>공원·하천</small></button>
-          <button data-v="hard" aria-pressed="false">운동 강도<small>언덕 포함</small></button>
+        <div class="card">
+          <div class="card-row">
+            <span class="label" id="lbl-goal">얼마나</span>
+            <div class="pills" role="group" aria-labelledby="lbl-goal" id="goal">
+              <button data-v="min" aria-pressed="true">시간</button>
+              <button data-v="steps" aria-pressed="false">걸음 수</button>
+              <button data-v="km" aria-pressed="false">거리</button>
+            </div>
+          </div>
+          <div class="slider-row">
+            <input id="amount" type="range" min="10" max="60" step="5" value="30" aria-label="목표 크기">
+            <span class="val" id="amount-val">30분</span>
+          </div>
+          <hr class="div">
+          <div class="card-row">
+            <div class="start-sum"><span class="label">출발</span><b id="start-sum">—</b></div>
+            <button class="linkbtn" id="start-toggle" aria-expanded="false" aria-controls="start-more">바꾸기</button>
+          </div>
+          <div class="start-more" id="start-more" hidden>
+            <div class="slider-row">
+              <input id="hour" type="range" min="5" max="23" step="1" value="17" aria-label="출발 시각">
+              <span class="val" id="hour-val">17:00</span>
+            </div>
+            <button class="linkbtn ghost" id="hour-now">지금 출발로</button>
+            <div class="start-row"><select id="start" aria-label="출발점"></select><button id="locate" type="button">내 위치</button></div>
+            <span class="hint" id="start-hint">지도를 눌러 출발점을 바꿀 수도 있어요.</span>
+          </div>
+          <div class="time-note" id="time-note"></div>
         </div>
-      </div>
 
-      <div class="group">
-        <span class="label" id="lbl-goal">목표</span>
-        <div class="seg three" role="group" aria-labelledby="lbl-goal" id="goal">
-          <button data-v="min" aria-pressed="true">시간</button>
-          <button data-v="steps" aria-pressed="false">걸음 수</button>
-          <button data-v="km" aria-pressed="false">거리</button>
-        </div>
-        <div class="slider-row">
-          <input id="amount" type="range" min="10" max="60" step="5" value="30" aria-label="목표 크기">
-          <span class="val" id="amount-val">30분</span>
-        </div>
+        <details class="how">
+          <summary>어떻게 코스를 고르나요?</summary>
+          <p><span id="how-area">이 지역</span> 일대 길 <span id="how-n"></span>개에 환경·자연·안전·접근성·소음 회피·운동 강도 점수와 횡단보도 신호 정보를 붙이고, 산책·러닝과 고른 조건, 출발 시각에 맞춰 합산해 돌아오는 코스를 찾아요. 21시 이후에는 안전 가중치가 올라가고, 어두운 골목과 밤의 공원·하천변은 덜 고르게 돼요.</p>
+          <p><b>산책과 러닝</b> 러닝은 신호 대기(횡단보도 신호 1곳당 약 80m 더 먼 길로 계산), 상가·정류장 혼잡, 잦은 꺾임을 피하고 거리를 ±3%로 맞춰요. 편안 조건은 반대로 신호 없는 횡단보도를 피하고 신호 있는 횡단보도로 건너게 해요.</p>
+          <p id="how-slope"><b>오르막·내리막</b> 고도 타일로 길마다 경사를 계산해요. 편안 조건은 경사 8%가 넘는 길을 빼고, 운동 강도 조건은 언덕을 일부러 넣어요.</p>
+          <p>데이터: OpenStreetMap 도로망·시설·공원·하천, 서울시 횡단보도 정보(보행 신호 유무), <span id="how-lights"></span> <span id="how-elev">고도는 Mapzen Terrain Tiles.</span></p>
+        </details>
       </div>
-
-      <div class="group">
-        <label for="hour">출발 시각</label>
-        <div class="slider-row">
-          <input id="hour" type="range" min="5" max="23" step="1" value="17">
-          <span class="val" id="hour-val">17:00</span>
-        </div>
-        <div class="time-note" id="time-note"></div>
+      <div class="side-foot">
+        <button class="go" id="go">코스 3개 만들기</button>
       </div>
+    </section>
 
-      <div class="group">
-        <label for="start">출발점</label>
-        <div class="start-row"><select id="start"></select><button id="locate" type="button">내 위치</button></div>
-        <span class="hint" id="start-hint">지도를 눌러 출발점을 바꿀 수도 있어요.</span>
+    <!-- ② 코스 고르기 -->
+    <section class="screen" id="scr-courses" aria-label="코스 고르기" hidden>
+      <div class="topbar">
+        <button class="back" id="back" aria-label="조건 바꾸기로 돌아가기"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6L9 12L15 18"/></svg></button>
+        <div class="topbar-text"><b>추천 코스</b><span id="sum"></span></div>
       </div>
-
-      <button class="go" id="go">코스 만들기</button>
-
-      <div class="results" id="results" aria-live="polite">
-        <div class="empty">코스를 만드는 중이에요…</div>
+      <div class="side-scroll">
+        <div class="results" id="results" aria-live="polite"></div>
       </div>
-
-      <div class="how">
-        <p><b>어떻게 고르나요?</b> <span id="how-area">이 지역</span> 일대 길 <span id="how-n"></span>개에 환경·자연·안전·접근성·소음 회피·운동 강도 점수와 횡단보도 신호 정보를 붙이고, 산책·러닝과 고른 조건, 출발 시각에 맞춰 합산해 돌아오는 코스를 찾아요. 21시 이후에는 안전 가중치가 올라가고, 어두운 골목과 밤의 공원·하천변은 덜 고르게 돼요.</p>
-        <p><b>산책과 러닝</b> 러닝은 신호 대기(횡단보도 신호 1곳당 약 80m 더 먼 길로 계산), 상가·정류장 혼잡, 잦은 꺾임을 피하고 거리를 ±3%로 맞춰요. 편안 조건은 반대로 신호 없는 횡단보도를 피하고 신호 있는 횡단보도로 건너게 해요.</p>
-        <p id="how-slope"><b>오르막·내리막</b> 고도 타일로 길마다 경사를 계산해요. 편안 조건은 경사 8%가 넘는 길을 빼고, 운동 강도 조건은 언덕을 일부러 넣어요. 같은 코스라도 오르막이 덜 가파른 방향으로 돌도록 방향을 정해요.</p>
-        <p>데이터: OpenStreetMap 도로망·시설·공원·하천, 서울시 횡단보도 정보(보행 신호 유무), <span id="how-lights"></span> <span id="how-elev">고도는 Mapzen Terrain Tiles.</span></p>
-      </div>
-    </div>
+      <div class="side-foot" id="course-foot"></div>
+    </section>
   </aside>
 
   <main class="mapwrap">
@@ -926,13 +983,18 @@ header.brand{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
     <div class="layer-hint" id="layer-hint" hidden>선택한 코스를 구간별로 색칠했어요</div>
     <div class="legend" id="legend" hidden><span id="lg-lo">낮음</span><span class="bar"></span><span id="lg-hi">높음</span></div>
     <div class="credit">© OpenStreetMap contributors · 고도 Mapzen Terrain Tiles</div>
-    <div class="nav" id="nav" hidden role="region" aria-label="길 안내">
+
+    <!-- ③ 길 안내 -->
+    <div class="nav" id="nav" hidden role="region" aria-label="다음 안내">
       <div class="nav-top"><div class="nav-turn" id="nav-turn" aria-hidden="true">↑</div>
         <div><div class="nav-dist" id="nav-dist">—</div><div class="nav-text" id="nav-text">위치를 찾는 중…</div></div></div>
-      <div class="nav-bar"><span id="nav-fill"></span></div>
-      <div class="nav-meta"><span id="nav-left"></span><span id="nav-src"></span></div>
       <div class="nav-warn" id="nav-warn" hidden aria-live="assertive"></div>
-      <div class="nav-btns"><button id="nav-voice" aria-pressed="true">음성 켜짐</button><button id="nav-center">내 위치로</button><button id="nav-end" class="end">안내 종료</button></div>
+    </div>
+    <button class="nav-center" id="nav-center" hidden aria-label="내 위치로 지도 맞추기"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2V5M12 19V22M2 12H5M19 12H22"/></svg></button>
+    <div class="nav-sheet" id="nav-sheet" hidden role="region" aria-label="안내 상태">
+      <div class="nav-meta"><span id="nav-left"></span><span id="nav-src"></span></div>
+      <div class="nav-bar"><span id="nav-fill"></span></div>
+      <div class="nav-btns"><button id="nav-voice" aria-pressed="true">음성 켜짐</button><button id="nav-end" class="end">안내 종료</button></div>
     </div>
     <div class="loading" id="loading">지도 데이터를 불러오는 중…</div>
   </main>
@@ -974,7 +1036,8 @@ const ROAD_PEN = {safe:3.5, night:1.0, evening:.4};
 // 갈림길에서 자주 꺾는 코스 감점 (안심 모드는 단순한 길을 더 선호)
 const TURN_W = {safe:.025, run:.02, other:.006};
 let baseLayer = null, tilesOk = false;
-const state = {conds:new Set(), goal:"min", act:"walk", amount:30, hour:17, start:null, courses:[], sel:0, layer:"plain"};
+const nowHour = () => Math.min(23, Math.max(5, new Date().getHours()));
+const state = {conds:new Set(), goal:"min", act:"walk", amount:30, hour:nowHour(), hourNow:true, start:null, courses:[], sel:-1, layer:"plain", screen:"setup"};
 
 const $ = s => document.querySelector(s);
 const has = k => state.conds.has(k);
@@ -1046,12 +1109,11 @@ function init(data){
   G.places.forEach(p => L.circleMarker(p.ll, {radius:4, weight:2, color:css("--ink"), fillColor:css("--panel"), fillOpacity:1, interactive:false})
     .bindTooltip(p.name, {permanent:true, direction:"right", offset:[6,0], className:"place-label"}).addTo(map));
   startMarker = L.circleMarker(G.nodes[state.start], {radius:9, weight:3, color:css("--ink"), fillColor:css("--panel"), fillOpacity:1}).addTo(map);
-  map.on("click", ev => { if (nav) return; state.start = nearestNode([ev.latlng.lat, ev.latlng.lng]); sel.value = "map"; custom.hidden = false; moveStart(); run(); });
-  sel.addEventListener("change", () => { if (sel.value === "map") return; state.start = nearestNode(G.places[+sel.value].ll); moveStart(); run(); });
+  // 출발점은 ① 조건 화면에서만 바꿈 (데스크톱에서는 지도를 눌러서도)
+  map.on("click", ev => { if (nav || state.screen !== "setup") return; state.start = nearestNode([ev.latlng.lat, ev.latlng.lng]); custom.textContent = "지도에서 고른 위치"; sel.value = "map"; custom.hidden = false; moveStart(); startUI(); });
+  sel.addEventListener("change", () => { if (sel.value === "map") return; state.start = nearestNode(G.places[+sel.value].ll); moveStart(); startUI(); });
   $("#loading").hidden = true;
-  bindUI(); bindNav();
-  parseNL($("#nl").value);
-  run();
+  bindUI(); bindNav(); startUI();
   window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", restyle);
   new MutationObserver(restyle).observe(document.documentElement, {attributes:true, attributeFilter:["data-theme"]});
 }
@@ -1233,7 +1295,7 @@ function targetMeters(){
   return state.amount*1000;
 }
 
-function run(){
+function run(done){
   if (!G) return;
   if (nav) endNav(true);
   const btn = $("#go"); btn.disabled = true; btn.textContent = "만드는 중…";
@@ -1251,9 +1313,10 @@ function run(){
       if (out.some(o => overlap(c, o) > .7)) continue;
       c.relaxed = relaxed; orient(c); c.st = stats(c); out.push(c); k++;
     }
-    state.courses = out; state.sel = 0;
+    state.courses = out; state.sel = -1;
     drawRoutes(); renderCards();
-    btn.disabled = false; btn.textContent = "코스 다시 만들기";
+    btn.disabled = false; btn.textContent = "코스 3개 만들기";
+    done && done();
   }, 10));
 }
 
@@ -1282,8 +1345,9 @@ function drawRoutes(){
         icon:L.divIcon({className:"", html:`<span class="rt-tag" style="--tc:${t.color}">${t.text}</span>`, iconSize:[0,0]})}).addTo(map)));
       return;
     }
+    const none = state.sel < 0;
     const halo = L.polyline(courseLatLngs(c), {weight:on?9:0, color:css("--panel"), opacity:on?.9:0, interactive:false});
-    const line = L.polyline(courseLatLngs(c), {weight:on?5:3, color:cols[i], opacity:on?1:(Ly?.3:.55), lineJoin:"round"});
+    const line = L.polyline(courseLatLngs(c), {weight:on?5:(none?4:3), color:cols[i], opacity:(on||none)?1:(Ly?.3:.5), lineJoin:"round"});
     line.on("click", ev => { L.DomEvent.stop(ev); select(i); });
     halo.addTo(map); line.addTo(map); routeLayers.push(halo, line);
     if (!on) line.bringToBack();
@@ -1291,47 +1355,74 @@ function drawRoutes(){
   streetLayer.forEach(l => l.bringToBack());
   startMarker.setStyle({color:css("--ink"), fillColor:css("--panel")}); startMarker.bringToFront();
   const c = state.courses[state.sel];
-  if (c && !nav) map.fitBounds(L.latLngBounds(courseLatLngs(c)).pad(.25), {maxZoom:16});
+  if (!nav && state.courses.length){
+    const pts = c ? courseLatLngs(c) : state.courses.flatMap(courseLatLngs);
+    map.fitBounds(L.latLngBounds(pts).pad(.2), {maxZoom:16});
+  }
 }
 
 function renderCards(){
   const box = $("#results"); box.innerHTML = "";
-  if (!state.courses.length){ box.innerHTML = '<div class="empty">이 조건으로는 코스를 만들지 못했어요. 목표를 줄이거나 출발점을 바꿔 보세요.</div>'; return; }
+  $("#sum").textContent = summaryText();
+  if (!state.courses.length){ box.innerHTML = '<div class="empty">이 조건으로는 코스를 만들지 못했어요. 목표를 줄이거나 출발점을 바꿔 보세요.</div>'; renderFoot(); return; }
   const cols = ["var(--c1)","var(--c2)","var(--c3)"], elder = has("easy");
   state.courses.forEach((c,i) => {
-    const s = c.st, b = document.createElement("button");
-    b.className = "course"; b.style.setProperty("--cc", cols[i]); b.setAttribute("aria-pressed", i===state.sel);
+    const s = c.st, b = document.createElement("button"), on = i===state.sel;
+    b.className = "course"; b.style.setProperty("--cc", cols[i]); b.setAttribute("aria-pressed", on);
     const chips = [];
     if (has("safe") && c.retrace >= .5) chips.push('<span class="chip ok">같은 큰길로 왕복</span>');
     if (c.relaxed) chips.push('<span class="chip warn">주변이 언덕이라 급경사 일부 포함</span>');
     if (has("nature")) chips.push(s.nat>=.4 ? '<span class="chip ok">공원·하천 '+Math.round(s.nat*100)+'%</span>' : '<span class="chip warn">자연 구간 적음</span>');
     if (isRun()) chips.push(s.sig/s.km<=1.5 ? '<span class="chip ok">신호 대기 '+s.sig+'곳</span>' : '<span class="chip warn">신호 대기 '+s.sig+'곳</span>');
-    if (elder && s.xw) chips.push('<span class="chip warn">신호 없는 횡단보도 '+s.xw+'곳</span>');
+    if (elder) chips.push((s.stairs===0 && s.maxUp<=.08) ? '<span class="chip ok">계단·급경사 없음</span>' : '<span class="chip warn">계단·급경사 있음</span>');
     if (isNight()) chips.push(s.dark<=150 ? '<span class="chip ok">어두운 골목 적음</span>' : '<span class="chip warn">어두운 골목 '+s.dark+'m</span>');
-    if (elder) chips.push(s.stairs===0 ? '<span class="chip ok">계단 없음</span>' : '<span class="chip warn">계단 '+s.stairs+'곳</span>');
-    if (G.hasElevation){
-      if (elder) chips.push(s.maxUp<=.08 ? '<span class="chip ok">급경사 없음</span>' : '<span class="chip warn">급경사 있음</span>');
-      if (has("hard")) chips.push(s.up>=25 ? '<span class="chip ok">언덕 포함</span>' : '<span class="chip warn">평탄한 편</span>');
-    }
-    b.innerHTML = `<span class="swatch"></span><h3>코스 ${i+1}</h3><span class="big">${s.km.toFixed(2)}km · ${s.min}분</span>
-      <div class="facts"><span>걸음 <b>${s.steps.toLocaleString()}</b></span>${G.hasLightData?`<span>조명 <b>${Math.round(s.lit*100)}%</b></span>`:''}<span>큰길 <b>${Math.round(s.major*100)}%</b></span><span>자연 <b>${Math.round(s.nat*100)}%</b></span><span>쉼터 <b>${s.rest}</b>곳</span>${G.hasElevation?`<span>오르막 <b>${s.up}m</b></span><span>최대 경사 <b>${Math.round(s.maxUp*100)}%</b></span>`:''}${s.toilet?'<span>화장실 경유</span>':''} ${chips.join(" ")}</div>${(i===state.sel && LAYERS[state.layer]) ? segBar(c, state.layer) : ''}${(i===state.sel && G.hasElevation) ? profileSVG(s.prof) : ''}`;
+    if (elder && s.xw) chips.push('<span class="chip warn">신호 없는 횡단보도 '+s.xw+'곳</span>');
+    if (G.hasElevation && has("hard")) chips.push(s.up>=25 ? '<span class="chip ok">언덕 '+s.up+'m</span>' : '<span class="chip warn">평탄한 편</span>');
+    // 조건에서 나온 표시가 모자라면 기본 정보로 채움
+    if (chips.length < 2 && G.hasLightData) chips.push('<span class="chip ok">조명 '+Math.round(s.lit*100)+'%</span>');
+    if (chips.length < 2) chips.push('<span class="chip ok">자연 '+Math.round(s.nat*100)+'%</span>');
+    const more = on ? `<div class="more"><div class="facts"><span>걸음 <b>${s.steps.toLocaleString()}</b></span>${G.hasLightData?`<span>조명 <b>${Math.round(s.lit*100)}%</b></span>`:''}<span>큰길 <b>${Math.round(s.major*100)}%</b></span><span>자연 <b>${Math.round(s.nat*100)}%</b></span><span>쉼터 <b>${s.rest}</b>곳</span>${G.hasElevation?`<span>오르막 <b>${s.up}m</b></span><span>최대 경사 <b>${Math.round(s.maxUp*100)}%</b></span>`:''}${s.toilet?'<span>화장실 경유</span>':''}</div>${chips.slice(2).length?`<div class="tags">${chips.slice(2).join(" ")}</div>`:''}${LAYERS[state.layer] ? segBar(c, state.layer) : ''}${G.hasElevation ? profileSVG(s.prof) : ''}</div>` : '';
+    b.innerHTML = `<span class="swatch"></span><h3>코스 ${i+1}</h3><span class="big">${s.km.toFixed(2)}km · ${s.min}분</span><div class="tags">${chips.slice(0,2).join(" ")}</div>${more}`;
     b.addEventListener("click", () => select(i));
     box.appendChild(b);
   });
-  const row = document.createElement("div"); row.className = "nav-row";
-  row.innerHTML = '<button class="nav-start" id="nav-gps">내 위치로 안내 시작</button><button class="nav-start sub" id="nav-sim">모의 안내 (데모)</button>';
-  box.appendChild(row);
-  row.querySelector("#nav-gps").addEventListener("click", () => startNav("gps"));
-  row.querySelector("#nav-sim").addEventListener("click", () => startNav("sim"));
   if (state.courses.length < 3){
     const note = document.createElement("div"); note.className = "empty";
-    note.textContent = `이 조건에 맞으면서 서로 다른 코스가 ${state.courses.length}개뿐이에요. 목표를 바꾸거나 출발점을 옮기면 더 나올 수 있어요.`;
+    note.textContent = `이 조건에 맞으면서 서로 다른 코스가 ${state.courses.length}개뿐이에요. 조건을 바꾸면 더 나올 수 있어요.`;
     box.appendChild(note);
   }
-  const walk = document.createElement("button");
-  walk.className = "walk-btn"; walk.textContent = "코스 미리보기 (8초)";
-  walk.addEventListener("click", preview);
-  box.appendChild(walk);
+  renderFoot();
+}
+// ② 화면 아래: 코스를 고르기 전에는 안내 문구, 고르면 안내 시작 버튼
+function renderFoot(){
+  const f = $("#course-foot"); f.innerHTML = "";
+  if (state.sel < 0 || !state.courses[state.sel]){
+    f.innerHTML = state.courses.length ? '<p class="foot-hint">걷고 싶은 코스를 하나 골라 주세요</p>' : '<button class="go" id="foot-back">조건 다시 고르기</button>';
+    const fb = f.querySelector("#foot-back"); if (fb) fb.addEventListener("click", () => go("setup"));
+    return;
+  }
+  f.innerHTML = `<button class="go" id="nav-gps">코스 ${state.sel+1}로 안내 시작</button><button class="sub-link" id="nav-sim">현장에 없다면: 모의 안내로 미리 보기</button>`;
+  f.querySelector("#nav-gps").addEventListener("click", () => startNav("gps"));
+  f.querySelector("#nav-sim").addEventListener("click", () => startNav("sim"));
+}
+function summaryText(){
+  const cs = [...state.conds].map(k => COND[k].name);
+  const amt = state.goal === "steps" ? Number(state.amount).toLocaleString()+"보" : state.goal === "km" ? state.amount+"km" : state.amount+"분";
+  return [ACT[state.act].name, cs.length ? cs.join("+") : "기본", amt, startName()+" 출발"].join(" · ");
+}
+function startName(){ const sel = $("#start"); return sel && sel.selectedIndex >= 0 ? sel.options[sel.selectedIndex].textContent : ""; }
+function startUI(){
+  $("#start-sum").textContent = `${startName()} · ${state.hourNow ? "지금 출발" : String(state.hour).padStart(2,"0")+":00 출발"}`;
+}
+// 화면 전환
+function go(screen){
+  state.screen = screen;
+  const app = $(".app"); app.dataset.screen = screen;
+  $("#scr-setup").hidden = screen !== "setup";
+  $("#scr-courses").hidden = screen !== "courses";
+  setTimeout(() => { map.invalidateSize(); if (screen === "courses") drawRoutes(); }, 60);
+  const focusEl = screen === "courses" ? $("#back") : screen === "setup" ? $("#go") : null;
+  if (focusEl) focusEl.focus({preventScroll:true});
 }
 function profileSVG(p){
   const W=320, H=46, top=4, bot=14, tot=p[p.length-1][0];
@@ -1389,12 +1480,12 @@ function locateStart(){
     const ll = [p.coords.latitude, p.coords.longitude];
     showMe(ll, p.coords.accuracy);
     if (!dataBounds().pad(.05).contains(ll)){
-      hint.textContent = "지금 위치는 데모 지역(강남 양재천 일대) 밖이에요. 출발점을 목록에서 고르거나 '모의 안내'로 체험해 보세요.";
+      hint.textContent = `지금 위치는 데모 지역(${REGION.name}) 밖이에요. 출발점을 목록에서 고르고, 코스를 고른 뒤 ‘모의 안내’로 체험해 보세요.`;
       return;
     }
     state.start = nearestNode(ll); const sel=$("#start"); sel.value="map"; sel.querySelector('option[value="map"]').hidden=false;
     sel.querySelector('option[value="map"]').textContent = "내 위치";
-    moveStart(); run(); hint.textContent = "내 위치에서 출발하는 코스예요.";
+    moveStart(); startUI(); hint.textContent = "내 위치에서 출발해요.";
   }, err => { hint.textContent = err.code===1 ? "위치 권한이 거부됐어요. 브라우저 주소창의 자물쇠 아이콘에서 위치를 허용해 주세요." : "위치를 찾지 못했어요. 잠시 후 다시 시도해 주세요."; },
   {enableHighAccuracy:true, timeout:10000});
 }
@@ -1484,8 +1575,7 @@ function startNav(src){
   nav = buildNav(c);
   drawRoutes();
   nav.done = L.polyline([], {weight:6, color:"#8A94A3", opacity:.9, interactive:false}).addTo(map);
-  $(".app").classList.add("navigating"); $(".mapwrap").classList.add("navigating"); $("#nav").hidden = false;
-  setTimeout(() => map.invalidateSize(), 50);
+  go("nav"); $("#nav").hidden = false; $("#nav-sheet").hidden = false; $("#nav-center").hidden = false;
   $("#nav-warn").hidden = true; $("#nav-voice").setAttribute("aria-pressed","true"); $("#nav-voice").textContent = "음성 켜짐";
   map.setView(nav.pts[0], 17);
   try { navigator.wakeLock && navigator.wakeLock.request("screen").then(l => nav && (nav.lock = l)).catch(()=>{}); } catch(e){}
@@ -1515,8 +1605,8 @@ function endNav(silent){
   if (window.speechSynthesis) speechSynthesis.cancel();
   nav = null;
   if (meMarker){ meMarker.remove(); meAcc.remove(); meMarker = meAcc = null; }
-  $("#nav").hidden = true; $(".app").classList.remove("navigating"); $(".mapwrap").classList.remove("navigating");
-  if (!silent) setTimeout(() => { map.invalidateSize(); drawRoutes(); }, 50);
+  $("#nav").hidden = true; $("#nav-sheet").hidden = true; $("#nav-center").hidden = true;
+  if (!silent){ go("courses"); renderCards(); }
 }
 function bindNav(){
   $("#locate").addEventListener("click", locateStart);
@@ -1629,23 +1719,24 @@ function timeUI(){
   else { n.className = "time-note"; n.textContent = "낮 시간 · 고른 조건 그대로 코스를 만들어요"; }
 }
 function bindUI(){
-  const seg = (sel, key, after) => document.querySelectorAll(sel+" button").forEach(b => b.addEventListener("click", () => { state[key] = b.dataset.v; setPressed(sel, b.dataset.v); after && after(); run(); }));
+  const seg = (sel, key, after) => document.querySelectorAll(sel+" button").forEach(b => b.addEventListener("click", () => { state[key] = b.dataset.v; setPressed(sel, b.dataset.v); after && after(); }));
   seg("#act","act", () => { actUI(); presetUI(); });
   document.querySelectorAll("#conds button").forEach(b => b.addEventListener("click", () => {
     const k = b.dataset.v;
     if (has(k)) state.conds.delete(k);
     else { state.conds.add(k); if (k==="easy") state.conds.delete("hard"); if (k==="hard") state.conds.delete("easy"); }   // 편안과 운동 강도는 함께 못 고름
-    condUI(); presetUI(); run();
+    condUI(); presetUI();
   }));
   document.querySelectorAll("#presets button").forEach(b => b.addEventListener("click", () => applyPreset(b.dataset.p)));
   seg("#goal","goal", () => { state.amount = {min:30, steps:3200, km:3}[state.goal]; amountUI(); });
   $("#amount").addEventListener("input", e => { state.amount = +e.target.value; amountUI(); });
-  $("#amount").addEventListener("change", run);
-  $("#hour").addEventListener("input", e => { state.hour = +e.target.value; timeUI(); });
-  $("#hour").addEventListener("change", run);
-  $("#go").addEventListener("click", run);
-  let t; $("#nl").addEventListener("input", e => { clearTimeout(t); t = setTimeout(() => { parseNL(e.target.value); run(); }, 600); });
-  $("#nl").addEventListener("keydown", e => { if (e.key==="Enter"){ clearTimeout(t); parseNL(e.target.value); run(); } });
+  $("#hour").addEventListener("input", e => { state.hour = +e.target.value; state.hourNow = false; timeUI(); startUI(); });
+  $("#hour-now").addEventListener("click", () => { state.hour = nowHour(); state.hourNow = true; timeUI(); startUI(); });
+  $("#start-toggle").addEventListener("click", e => { const m = $("#start-more"); m.hidden = !m.hidden; e.target.setAttribute("aria-expanded", !m.hidden); e.target.textContent = m.hidden ? "바꾸기" : "닫기"; if (!m.hidden) setTimeout(() => map.invalidateSize(), 50); });
+  $("#go").addEventListener("click", () => { if ($("#nl").value.trim()) parseNL($("#nl").value); run(() => go("courses")); });
+  $("#back").addEventListener("click", () => go("setup"));
+  let t; $("#nl").addEventListener("input", e => { clearTimeout(t); t = setTimeout(() => parseNL(e.target.value), 600); });
+  $("#nl").addEventListener("keydown", e => { if (e.key==="Enter"){ clearTimeout(t); parseNL(e.target.value); e.target.blur(); } });
   document.querySelectorAll(".layer-switch button").forEach(b => b.addEventListener("click", () => { state.layer = b.dataset.v; setPressed(".layer-switch", b.dataset.v); styleStreets(); drawRoutes(); renderCards(); }));
   amountUI(); timeUI(); actUI(); condUI(); presetUI();
 }
@@ -1666,10 +1757,10 @@ function presetUI(){
 function applyPreset(name){
   const p = PRESETS[name];
   state.act = p.act; state.conds = new Set(p.conds);
-  if (p.hour) state.hour = p.hour;
-  if (p.day && isNight()) state.hour = 17;
+  if (p.hour && state.hour < p.hour){ state.hour = p.hour; state.hourNow = false; }
+  if (p.day && isNight()){ state.hour = 17; state.hourNow = false; }
   $("#nl").value = ""; $("#parsed").innerHTML = "";   // 바로가기를 누르면 이전 문장 해석은 지움
-  actUI(); condUI(); presetUI(); timeUI(); run();
+  actUI(); condUI(); presetUI(); timeUI(); startUI();
 }
 
 // 데모용 키워드 해석 (실서비스는 LLM이 조건으로 변환)
@@ -1688,10 +1779,10 @@ function parseNL(s){
   if (steps){ state.goal="steps"; state.amount=steps; got.push(steps.toLocaleString()+"보"); }
   else if (km){ state.goal="km"; state.amount=km; got.push(km+"km"); }
   else if (mins || hr){ state.goal="min"; state.amount=(mins||0)+(hr||0)*60; got.push(state.amount+"분"); }
-  if (/밤|늦/.test(s) && state.hour < 21){ state.hour = 21; got.push("21시 출발"); }
-  if (/낮|오후/.test(s)){ state.hour = 15; got.push("15시 출발"); }
-  if (/아침|새벽/.test(s)){ state.hour = 7; got.push("7시 출발"); }
-  setPressed("#goal",state.goal); amountUI(); timeUI(); actUI(); condUI(); presetUI();
+  if (/밤|늦/.test(s) && state.hour < 21){ state.hour = 21; state.hourNow = false; got.push("21시 출발"); }
+  if (/낮|오후/.test(s)){ state.hour = 15; state.hourNow = false; got.push("15시 출발"); }
+  if (/아침|새벽/.test(s)){ state.hour = 7; state.hourNow = false; got.push("7시 출발"); }
+  setPressed("#goal",state.goal); amountUI(); timeUI(); actUI(); condUI(); presetUI(); startUI();
   $("#parsed").innerHTML = got.map(g => `<span>${g}</span>`).join("");
 }
 })();
