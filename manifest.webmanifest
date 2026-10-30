@@ -1,0 +1,17 @@
+{
+  "name": "오늘길 · 나에게 맞는 오늘의 걷기·러닝 코스",
+  "short_name": "오늘길",
+  "description": "조건만 고르면 집 앞에서 출발해 돌아오는 산책·러닝 코스를 만들어 주는 앱",
+  "lang": "ko",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#F3F4EF",
+  "theme_color": "#0F7A55",
+  "icons": [
+    {"src": "icon-192.png", "sizes": "192x192", "type": "image/png"},
+    {"src": "icon-512.png", "sizes": "512x512", "type": "image/png"},
+    {"src": "icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable"}
+  ]
+}
