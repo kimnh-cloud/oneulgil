@@ -859,6 +859,25 @@ details.how p{margin:8px 0 0}
 .nav-sheet .nav-btns button.end{background:#FDECEC;border-color:#FDECEC}
 .nav-center{position:absolute;z-index:700;right:16px;bottom:270px;width:48px;height:48px;border-radius:50%;background:var(--panel);color:#2F64D6;border:1px solid var(--line);box-shadow:0 2px 8px rgba(0,0,0,.15);display:grid;place-items:center;cursor:pointer}
 .nav-center[hidden]{display:none}
+.saved{display:flex;flex-direction:column;gap:8px}
+.saved[hidden]{display:none}
+.saved .label{font-size:13px;font-weight:600;color:var(--ink-2)}
+.saved-list{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px;scroll-snap-type:x proximity}
+.saved-item{flex:0 0 auto;min-width:150px;max-width:230px;scroll-snap-align:start;text-align:left;font:inherit;color:var(--ink);background:var(--panel);border:1px solid var(--line);border-left:4px solid var(--accent);border-radius:12px;padding:10px 12px;display:flex;flex-direction:column;gap:2px;cursor:pointer}
+.saved-item b{font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.saved-item span{font-size:12px;color:var(--ink-2)}
+.saved-item .memo{font-style:italic}
+.foot-row{display:flex;justify-content:center;gap:16px;flex-wrap:wrap}
+.save-btn{font:inherit;font-size:14px;font-weight:600;color:var(--accent);background:var(--accent-soft);border:0;border-radius:999px;padding:8px 14px;cursor:pointer}
+.save-btn[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink)}
+.arrive{display:flex;flex-direction:column;gap:10px;background:var(--accent-soft);border-radius:14px;padding:12px}
+.arrive[hidden]{display:none}
+.arrive b{font-size:15px}
+.stars{display:flex;gap:4px}
+.stars button{font-size:28px;line-height:1;width:44px;height:44px;border:0;background:transparent;color:var(--line);cursor:pointer;padding:0}
+.stars button[aria-pressed="true"]{color:#E0A100}
+.arrive input{font:inherit;font-size:14px;color:var(--ink);background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:10px 12px}
+.nav-sheet .nav-btns button.save{background:var(--accent);border-color:var(--accent);color:var(--accent-ink);font-weight:700}
 .nav-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
 .nav-stats div{display:flex;flex-direction:column;gap:2px;min-width:0}
 .nav-stats span{font-size:11px;font-weight:600;color:var(--ink-2)}
@@ -895,6 +914,11 @@ details.how p{margin:8px 0 0}
           <label for="nl">오늘은 어떻게 걷고 싶나요?</label>
           <input id="nl" type="text" placeholder="예: 밤이라 밝은 길로 20분" autocomplete="off" enterkeyhint="done">
           <div class="parsed" id="parsed"></div>
+        </div>
+
+        <div class="saved" id="saved" hidden>
+          <span class="label">내 코스</span>
+          <div class="saved-list" id="saved-list"></div>
         </div>
 
         <div class="presets" role="group" aria-label="바로가기" id="presets">
@@ -966,7 +990,7 @@ details.how p{margin:8px 0 0}
     <section class="screen" id="scr-courses" aria-label="코스 고르기" hidden>
       <div class="topbar">
         <button class="back" id="back" aria-label="조건 바꾸기로 돌아가기"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6L9 12L15 18"/></svg></button>
-        <div class="topbar-text"><b>추천 코스</b><span id="sum"></span></div>
+        <div class="topbar-text"><b id="top-title">추천 코스</b><span id="sum"></span></div>
       </div>
       <div class="side-scroll">
         <div class="results" id="results" aria-live="polite"></div>
@@ -1004,6 +1028,14 @@ details.how p{margin:8px 0 0}
       </div>
       <div class="nav-meta"><span id="nav-left"></span><span id="nav-src"></span></div>
       <div class="nav-bar"><span id="nav-fill"></span></div>
+      <div class="arrive" id="arrive" hidden>
+        <b id="arrive-title">완주했어요! 이 코스 어땠나요?</b>
+        <div class="stars" role="group" aria-label="별점" id="stars">
+          <button data-v="1" aria-label="별 1개" aria-pressed="false">★</button><button data-v="2" aria-label="별 2개" aria-pressed="false">★</button><button data-v="3" aria-label="별 3개" aria-pressed="false">★</button><button data-v="4" aria-label="별 4개" aria-pressed="false">★</button><button data-v="5" aria-label="별 5개" aria-pressed="false">★</button>
+        </div>
+        <input id="arrive-memo" type="text" maxlength="40" placeholder="한 줄 메모 (예: 벚꽃 좋음, 저녁엔 어두움)" aria-label="한 줄 메모">
+        <div class="nav-btns"><button id="arrive-save" class="save">내 코스에 저장</button><button id="arrive-skip">저장 안 함</button></div>
+      </div>
       <div class="nav-btns"><button id="nav-voice" aria-pressed="true">음성 켜짐</button><button id="nav-end" class="end">안내 종료</button></div>
     </div>
     <div class="loading" id="loading">지도 데이터를 불러오는 중…</div>
@@ -1123,7 +1155,7 @@ function init(data){
   map.on("click", ev => { if (nav || state.screen !== "setup") return; state.start = nearestNode([ev.latlng.lat, ev.latlng.lng]); custom.textContent = "지도에서 고른 위치"; sel.value = "map"; custom.hidden = false; moveStart(); startUI(); });
   sel.addEventListener("change", () => { if (sel.value === "map") return; state.start = nearestNode(G.places[+sel.value].ll); moveStart(); startUI(); });
   $("#loading").hidden = true;
-  bindUI(); bindNav(); startUI();
+  bindUI(); bindNav(); startUI(); renderSaved();
   window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", restyle);
   new MutationObserver(restyle).observe(document.documentElement, {attributes:true, attributeFilter:["data-theme"]});
 }
@@ -1323,7 +1355,7 @@ function run(done){
       if (out.some(o => overlap(c, o) > .7)) continue;
       c.relaxed = relaxed; orient(c); c.st = stats(c); out.push(c); k++;
     }
-    state.courses = out; state.sel = -1;
+    state.courses = out; state.sel = -1; state.viewSaved = null;
     drawRoutes(); renderCards();
     btn.disabled = false; btn.textContent = "코스 만들기";
     done && done();
@@ -1374,6 +1406,7 @@ function drawRoutes(){
 function renderCards(){
   const box = $("#results"); box.innerHTML = "";
   $("#sum").textContent = summaryText();
+  $("#top-title").textContent = state.viewSaved ? "내 코스" : "추천 코스";
   if (!state.courses.length){ box.innerHTML = '<div class="empty">이 조건으로는 코스를 만들지 못했어요. 목표를 줄이거나 출발점을 바꿔 보세요.</div>'; renderFoot(); return; }
   const cols = ["var(--c1)","var(--c2)","var(--c3)"], elder = has("easy");
   state.courses.forEach((c,i) => {
@@ -1392,17 +1425,18 @@ function renderCards(){
     if (chips.length < 2 && G.hasLightData) chips.push('<span class="chip ok">조명 '+Math.round(s.lit*100)+'%</span>');
     if (chips.length < 2) chips.push('<span class="chip ok">자연 '+Math.round(s.nat*100)+'%</span>');
     const more = on ? `<div class="more"><div class="facts"><span>걸음 <b>${s.steps.toLocaleString()}</b></span>${G.hasLightData?`<span>조명 <b>${Math.round(s.lit*100)}%</b></span>`:''}<span>큰길 <b>${Math.round(s.major*100)}%</b></span><span>자연 <b>${Math.round(s.nat*100)}%</b></span><span>쉼터 <b>${s.rest}</b>곳</span>${G.hasElevation?`<span>오르막 <b>${s.up}m</b></span><span>최대 경사 <b>${Math.round(s.maxUp*100)}%</b></span>`:''}${s.toilet?'<span>화장실 경유</span>':''}</div>${chips.slice(2).length?`<div class="tags">${chips.slice(2).join(" ")}</div>`:''}${LAYERS[state.layer] ? segBar(c, state.layer) : ''}${G.hasElevation ? profileSVG(s.prof) : ''}</div>` : '';
-    b.innerHTML = `<span class="swatch"></span><h3>코스 ${i+1}</h3><span class="big">${s.km.toFixed(2)}km · ${s.min}분</span><div class="tags">${chips.slice(0,2).join(" ")}</div>${more}`;
+    b.innerHTML = `<span class="swatch"></span><h3>${c.savedName ? escapeHTML(c.savedName) : "코스 " + (i+1)}</h3><span class="big">${s.km.toFixed(2)}km · ${s.min}분</span><div class="tags">${chips.slice(0,2).join(" ")}</div>${more}`;
     b.addEventListener("click", () => select(i));
     box.appendChild(b);
   });
-  if (state.courses.length < 3){
+  if (state.courses.length < 3 && !state.viewSaved){
     const note = document.createElement("div"); note.className = "empty";
     note.textContent = `이 조건에 맞으면서 서로 다른 코스가 ${state.courses.length}개뿐이에요. 조건을 바꾸면 더 나올 수 있어요.`;
     box.appendChild(note);
   }
   renderFoot();
 }
+const escapeHTML = t => String(t).replace(/[&<>"']/g, ch => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[ch]));
 // ② 화면 아래: 코스를 고르기 전에는 안내 문구, 고르면 안내 시작 버튼
 function renderFoot(){
   const f = $("#course-foot"); f.innerHTML = "";
@@ -1411,11 +1445,25 @@ function renderFoot(){
     const fb = f.querySelector("#foot-back"); if (fb) fb.addEventListener("click", () => go("setup"));
     return;
   }
-  f.innerHTML = `<button class="go" id="nav-gps">코스 ${state.sel+1}로 안내 시작</button><button class="sub-link" id="nav-sim">현장에 없다면: 모의 안내로 미리 보기</button>`;
+  const c = state.courses[state.sel];
+  const label = c.savedName ? "이 코스로 안내 시작" : `코스 ${state.sel+1}로 안내 시작`;
+  f.innerHTML = `<button class="go" id="nav-gps">${label}</button>
+    <div class="foot-row">${state.viewSaved
+      ? '<button class="sub-link" id="nav-sim">모의 안내로 미리 보기</button><button class="sub-link" id="del-saved">내 코스에서 삭제</button>'
+      : `<button class="save-btn" id="save-now" aria-pressed="${!!c.savedId}">${c.savedId ? "★ 저장됨" : "☆ 내 코스에 저장"}</button><button class="sub-link" id="nav-sim">모의 안내로 미리 보기</button>`}</div>`;
   f.querySelector("#nav-gps").addEventListener("click", () => startNav("gps"));
   f.querySelector("#nav-sim").addEventListener("click", () => startNav("sim"));
+  const sv = f.querySelector("#save-now");
+  if (sv) sv.addEventListener("click", () => {
+    if (c.savedId){ deleteSaved(c.savedId); c.savedId = null; c.savedName = null; }
+    else saveCourse(c);
+    renderCards();
+  });
+  const del = f.querySelector("#del-saved");
+  if (del) del.addEventListener("click", () => { deleteSaved(state.viewSaved.id); state.viewSaved = null; state.courses = []; go("setup"); });
 }
 function summaryText(){
+  if (state.viewSaved) return `저장한 코스 · ${state.viewSaved.date} 저장`;
   const cs = [...state.conds].map(k => COND[k].name);
   const amt = state.goal === "steps" ? Number(state.amount).toLocaleString()+"보" : state.goal === "km" ? state.amount+"km" : state.amount+"분";
   return [ACT[state.act].name, cs.length ? cs.join("+") : "기본", amt, startName()+" 출발"].join(" · ");
@@ -1424,6 +1472,66 @@ function startName(){ const sel = $("#start"); return sel && sel.selectedIndex >
 function startUI(){
   $("#start-sum").textContent = `${startName()} · ${state.hourNow ? "지금 출발" : String(state.hour).padStart(2,"0")+":00 출발"}`;
 }
+// ---------- 내 코스 저장 (이 기기의 브라우저에 저장) ----------
+const SAVE_KEY = "oneulgil.saved.v1";
+let memSaved = [];
+function savedAll(){ try { return JSON.parse(localStorage.getItem(SAVE_KEY) || "[]"); } catch(e){ return memSaved; } }
+function savedWrite(list){ try { localStorage.setItem(SAVE_KEY, JSON.stringify(list)); } catch(e){ memSaved = list; } }
+const savedHere = () => savedAll().filter(r => r.region === REGION.id);
+const today = () => { const d = new Date(); return `${d.getMonth()+1}/${d.getDate()}`; };
+function saveCourse(c, extra={}){
+  const list = savedAll();
+  let rec = c.savedId ? list.find(r => r.id === c.savedId) : null;
+  if (!rec){
+    const st = c.st;
+    rec = { id: "c" + Date.now().toString(36), region: REGION.id, created: Date.now(),
+      name: `${startName()} ${st.km.toFixed(1)}km ${ACT[state.act].name}`, date: today(),
+      act: state.act, conds: [...state.conds], km: +st.km.toFixed(2), min: st.min,
+      edges: c.edges, pts: courseLatLngs(c).map(p => [+p[0].toFixed(5), +p[1].toFixed(5)]),
+      rating: 0, memo: "", walks: 0 };
+    list.unshift(rec); c.savedId = rec.id; c.savedName = rec.name;
+  }
+  Object.assign(rec, extra);
+  savedWrite(list); renderSaved();
+  return rec;
+}
+function deleteSaved(id){ savedWrite(savedAll().filter(r => r.id !== id)); renderSaved(); }
+// 저장한 길 번호가 지금 데이터와 맞는지 확인하고, 안 맞으면 좌표로 다시 맞춤 (지역 데이터를 새로 만든 경우)
+function rebuildEdges(rec){
+  const ok = rec.edges.every((ei,k) => G.edges[ei] && (k === 0 || G.edges[rec.edges[k-1]][1] === G.edges[ei][0]));
+  if (ok){ const L = rec.edges.reduce((a,ei)=>a+G.edges[ei][2],0); if (Math.abs(L/1000 - rec.km) / rec.km < .03) return rec.edges; }
+  const seq = []; rec.pts.forEach((p,k) => { if (k % 3 && k !== rec.pts.length-1) return; const v = nearestNode(p); if (seq[seq.length-1] !== v) seq.push(v); });
+  const len = Float64Array.from(G.edges.map(e => e[2])), none = new Uint8Array(G.edges.length), out = [];
+  for (let k=1;k<seq.length;k++){ const d = dijkstra(seq[k-1], len, none, seq[k]); if (!isFinite(d.dist[seq[k]])) return null; out.push(...pathTo(d.prev, seq[k])); }
+  return out.length ? out : null;
+}
+function openSaved(id){
+  const rec = savedAll().find(r => r.id === id); if (!rec) return;
+  const edges = rebuildEdges(rec);
+  if (!edges){ alertBox("저장한 코스를 이 지도에서 찾지 못했어요."); return; }
+  state.act = rec.act; state.conds = new Set(rec.conds); actUI(); condUI(); presetUI();
+  state.start = G.edges[edges[0]][0]; moveStart();
+  const c = { edges, len: edges.reduce((a,ei)=>a+G.edges[ei][2],0), retrace: 0, savedId: rec.id, savedName: rec.name };
+  c.st = stats(c);
+  state.courses = [c]; state.sel = 0; state.viewSaved = rec;
+  drawRoutes(); renderCards(); go("courses");
+}
+function alertBox(msg){ const f = $("#course-foot"); if (f) f.insertAdjacentHTML("afterbegin", `<p class="foot-hint">${msg}</p>`); }
+function renderSaved(){
+  const list = savedHere(), box = $("#saved-list");
+  $("#saved").hidden = !list.length; box.innerHTML = "";
+  list.forEach(r => {
+    const b = document.createElement("button"); b.className = "saved-item";
+    const stars = r.rating ? " · " + "★".repeat(r.rating) : "";
+    b.innerHTML = `<b></b><span>${r.km.toFixed(1)}km · ${r.min}분${stars}${r.walks ? ` · ${r.walks}번 걸음` : ""}</span>${r.memo ? '<span class="memo"></span>' : ""}`;
+    b.querySelector("b").textContent = r.name;            // 사용자가 쓴 글은 글자로만 넣음
+    if (r.memo) b.querySelector(".memo").textContent = "“" + r.memo + "”";
+    b.setAttribute("aria-label", `내 코스 ${r.name}, ${r.km}km`);
+    b.addEventListener("click", () => openSaved(r.id));
+    box.appendChild(b);
+  });
+}
+
 // 화면 전환
 function go(screen){
   state.screen = screen;
@@ -1431,6 +1539,7 @@ function go(screen){
   $("#scr-setup").hidden = screen !== "setup";
   $("#scr-courses").hidden = screen !== "courses";
   setTimeout(() => { map.invalidateSize(); if (screen === "courses") drawRoutes(); }, 60);
+  if (screen === "setup") renderSaved();
   const focusEl = screen === "courses" ? $("#back") : screen === "setup" ? $("#go") : null;
   if (focusEl) focusEl.focus({preventScroll:true});
 }
@@ -1466,7 +1575,7 @@ function preview(){
 }
 
 // ---------- 실시간 길 안내 ----------
-const SIM_SPEED = 6;            // 모의 안내 배속
+const SIM_SPEED = new URLSearchParams(location.search).has("fastsim") ? 80 : 6;            // 모의 안내 배속
 let nav = null, meMarker = null, meAcc = null;
 const toRad = x => x*Math.PI/180;
 function bearing(a,b){ const y=Math.sin(toRad(b[1]-a[1]))*Math.cos(toRad(b[0]));
@@ -1566,6 +1675,7 @@ function updateNavUI(){
   if (dist <= 20 && !n.spoken.has(k+"b")){ n.spoken.add(k+"b"); n.spoken.add(k+"a"); say(m.icon==="⚑" ? "" : m.text); }
   if (left <= 15 && !n.arrived){
     n.arrived = true; n.tEnd = Date.now(); stopFeed(); navStats();
+    showArrive(n.c);
     $("#nav-turn").textContent = "⚑"; $("#nav-dist").textContent = "도착";
     $("#nav-text").textContent = `${(n.total/1000).toFixed(2)}km · 약 ${Math.round(n.total/a.stride).toLocaleString()}보 완주`;
     $("#nav-fill").style.width = "100%";
@@ -1606,7 +1716,7 @@ function startNav(src){
   nav.tick = setInterval(navStats, 1000);
   drawRoutes();
   nav.done = L.polyline([], {weight:6, color:"#8A94A3", opacity:.9, interactive:false}).addTo(map);
-  go("nav"); $("#nav").hidden = false; $("#nav-sheet").hidden = false; $("#nav-center").hidden = false;
+  go("nav"); $("#arrive").hidden = true; $("#nav").hidden = false; $("#nav-sheet").hidden = false; $("#nav-center").hidden = false;
   $("#nav-warn").hidden = true; $("#nav-voice").setAttribute("aria-pressed","true"); $("#nav-voice").textContent = "음성 켜짐";
   map.setView(nav.pts[0], 17);
   try { navigator.wakeLock && navigator.wakeLock.request("screen").then(l => nav && (nav.lock = l)).catch(()=>{}); } catch(e){}
@@ -1640,7 +1750,26 @@ function endNav(silent){
   $("#nav").hidden = true; $("#nav-sheet").hidden = true; $("#nav-center").hidden = true;
   if (!silent){ go("courses"); renderCards(); }
 }
+let arriveRating = 0;
+function showArrive(c){
+  const rec = c.savedId ? savedAll().find(r => r.id === c.savedId) : null;
+  arriveRating = rec ? rec.rating : 0;
+  $("#arrive-title").textContent = rec ? "완주했어요! 오늘은 어땠나요?" : "완주했어요! 이 코스 어땠나요?";
+  $("#arrive-memo").value = rec ? rec.memo : "";
+  $("#arrive-save").textContent = rec ? "기록 저장" : "내 코스에 저장";
+  $("#arrive-save").disabled = false;
+  starsUI(); $("#arrive").hidden = false;
+}
+function starsUI(){ document.querySelectorAll("#stars button").forEach(b => b.setAttribute("aria-pressed", +b.dataset.v <= arriveRating)); }
 function bindNav(){
+  document.querySelectorAll("#stars button").forEach(b => b.addEventListener("click", () => { arriveRating = +b.dataset.v; starsUI(); }));
+  $("#arrive-save").addEventListener("click", () => {
+    if (!nav) return;
+    const c = nav.c, rec = c.savedId ? savedAll().find(r => r.id === c.savedId) : null;
+    saveCourse(c, { rating: arriveRating, memo: $("#arrive-memo").value.trim(), walks: (rec ? rec.walks : 0) + 1, lastWalk: Date.now() });
+    $("#arrive-save").textContent = "저장했어요"; $("#arrive-save").disabled = true;
+  });
+  $("#arrive-skip").addEventListener("click", () => { $("#arrive").hidden = true; });
   $("#locate").addEventListener("click", locateStart);
   $("#nav-end").addEventListener("click", () => endNav());
   $("#nav-center").addEventListener("click", () => { if (!nav) return; nav.follow = true; if (meMarker) map.setView(meMarker.getLatLng(), Math.max(map.getZoom(),17)); });
@@ -1766,7 +1895,7 @@ function bindUI(){
   $("#hour-now").addEventListener("click", () => { state.hour = nowHour(); state.hourNow = true; timeUI(); startUI(); });
   $("#start-toggle").addEventListener("click", e => { const m = $("#start-more"); m.hidden = !m.hidden; e.target.setAttribute("aria-expanded", !m.hidden); e.target.textContent = m.hidden ? "바꾸기" : "닫기"; if (!m.hidden) setTimeout(() => map.invalidateSize(), 50); });
   $("#go").addEventListener("click", () => { if ($("#nl").value.trim()) parseNL($("#nl").value); run(() => go("courses")); });
-  $("#back").addEventListener("click", () => go("setup"));
+  $("#back").addEventListener("click", () => { state.viewSaved = null; go("setup"); });
   let t; $("#nl").addEventListener("input", e => { clearTimeout(t); t = setTimeout(() => parseNL(e.target.value), 600); });
   $("#nl").addEventListener("keydown", e => { if (e.key==="Enter"){ clearTimeout(t); parseNL(e.target.value); e.target.blur(); } });
   document.querySelectorAll(".layer-switch button").forEach(b => b.addEventListener("click", () => { state.layer = b.dataset.v; setPressed(".layer-switch", b.dataset.v); styleStreets(); drawRoutes(); renderCards(); }));

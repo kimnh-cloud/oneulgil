@@ -1,5 +1,5 @@
 // 오늘길 서비스 워커: 한 번 열었던 화면과 지역 데이터를 저장해 두고, 다음부터 빠르게(오프라인에서도) 열리게 함
-const CACHE = "oneulgil-v17";
+const CACHE = "oneulgil-v18";
 const SHELL = ["./", "index.html", "regions.json", "manifest.webmanifest", "icon-192.png", "icon-512.png",
   "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"];
 
