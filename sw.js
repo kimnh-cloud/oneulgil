@@ -1,5 +1,5 @@
 // 오늘길 서비스 워커: 한 번 열었던 화면과 지역 데이터를 저장해 두고, 다음부터 빠르게(오프라인에서도) 열리게 함
-const CACHE = "oneulgil-v14";
+const CACHE = "oneulgil-v16";
 const SHELL = ["./", "index.html", "regions.json", "manifest.webmanifest", "icon-192.png", "icon-512.png",
   "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"];
 
@@ -22,7 +22,7 @@ self.addEventListener("fetch", e => {
       if (res.ok){ const copy = res.clone(); caches.open(CACHE).then(c => c.put(e.request, copy)); }
       return res;
     }).catch(() => caches.match(e.request).then(r => r || caches.match("index.html"))));
-  } else if (url.hostname === "cdnjs.cloudflare.com" || url.hostname === "fonts.gstatic.com" || url.hostname === "fonts.googleapis.com"){
+  } else if (url.hostname === "cdnjs.cloudflare.com" || url.hostname === "fonts.gstatic.com" || url.hostname === "fonts.googleapis.com" || url.hostname === "cdn.jsdelivr.net"){
     // 라이브러리·글꼴: 저장본 우선
     e.respondWith(caches.match(e.request).then(r => r || fetch(e.request).then(res => {
       const copy = res.clone(); caches.open(CACHE).then(c => c.put(e.request, copy)); return res;

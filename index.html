@@ -12,7 +12,8 @@
 <title>오늘길</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;600&display=swap">
 <style>
 /* required styles */
 
@@ -684,7 +685,7 @@ svg.leaflet-image-layer.leaflet-interactive path {
   --night:#C9781E; --night-soft:#FBEEDD;
   --c1:#0F7A55; --c2:#2F64D6; --c3:#C2410C;
   --good:#15803D; --warn:#B45309; --bad:#B91C1C;
-  --font:"IBM Plex Sans KR","Apple SD Gothic Neo","Malgun Gothic",sans-serif;
+  --font:"Pretendard Variable",Pretendard,-apple-system,"Apple SD Gothic Neo","Malgun Gothic",sans-serif;
   --mono:"IBM Plex Mono",ui-monospace,monospace;
   --r:10px;
 }
@@ -820,7 +821,7 @@ header.brand{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
 .pills button{font:inherit;font-size:12px;color:var(--ink-2);background:var(--panel);border:1px solid var(--line);border-radius:999px;padding:5px 10px;cursor:pointer}
 .pills button[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:var(--panel);font-weight:600}
 .seg.conds{grid-template-columns:repeat(2,1fr)}
-.seg.conds button{align-items:flex-start;text-align:left;padding:10px 12px;font-size:15px;font-weight:600}
+.seg.conds button{align-items:center;text-align:center;padding:10px 8px;font-size:15px;font-weight:600}
 .seg.two button{font-size:15px;font-weight:600;padding:11px 4px}
 hr.div{border:0;border-top:1px solid var(--line);margin:2px 0;width:100%}
 .start-sum{display:flex;flex-direction:column;gap:2px}
@@ -905,8 +906,7 @@ details.how p{margin:8px 0 0}
             <button data-v="walk" aria-pressed="true">산책</button>
             <button data-v="run" aria-pressed="false">러닝</button>
           </div>
-          <span class="hint" id="act-hint"></span>
-          <span class="label" id="lbl-cond">우선 조건 <small>· 여러 개 선택</small></span>
+          <span class="label" id="lbl-cond">추가 조건 <small>· 여러 개 선택</small></span>
           <div class="seg conds" role="group" aria-labelledby="lbl-cond" id="conds">
             <button data-v="safe" aria-pressed="false">안심<small>밝은 큰길</small></button>
             <button data-v="easy" aria-pressed="false">편안<small>계단·언덕 없이</small></button>
@@ -954,7 +954,7 @@ details.how p{margin:8px 0 0}
         </details>
       </div>
       <div class="side-foot">
-        <button class="go" id="go">코스 3개 만들기</button>
+        <button class="go" id="go">코스 만들기</button>
       </div>
     </section>
 
@@ -1315,7 +1315,7 @@ function run(done){
     }
     state.courses = out; state.sel = -1;
     drawRoutes(); renderCards();
-    btn.disabled = false; btn.textContent = "코스 3개 만들기";
+    btn.disabled = false; btn.textContent = "코스 만들기";
     done && done();
   }, 10));
 }
@@ -1742,9 +1742,7 @@ function bindUI(){
 }
 function actUI(){
   setPressed("#act", state.act);
-  $("#act-hint").textContent = isRun()
-    ? "러닝: 신호 대기·혼잡한 길·잦은 꺾임을 피하고, 거리를 ±3%로 맞춰요."
-    : "산책: 자연·쉼터를 챙겨요. 편안을 고르면 천천히 걷는 속도로 계산해요.";
+  // (활동 설명 문구는 삭제)
 }
 function condUI(){ document.querySelectorAll("#conds button").forEach(b => b.setAttribute("aria-pressed", has(b.dataset.v))); }
 function presetUI(){
