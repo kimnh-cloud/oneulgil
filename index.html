@@ -853,12 +853,16 @@ details.how p{margin:8px 0 0}
 .nav .nav-text{font-size:17px}
 .nav-sheet{position:absolute;z-index:700;left:0;right:0;bottom:0;background:var(--panel);color:var(--ink);border-radius:20px 20px 0 0;box-shadow:0 -4px 16px rgba(0,0,0,.14);padding:16px max(16px,calc(50% - 240px)) calc(20px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:12px}
 .nav-sheet[hidden]{display:none}
-.nav-sheet .nav-meta{font-size:14px}
-.nav-sheet .nav-meta b{font-size:20px}
+.nav-sheet .nav-meta{font-size:13px;gap:8px;align-items:baseline}
+.nav-sheet .nav-meta b{font-size:15px;font-family:var(--mono)}
 .nav-sheet .nav-btns button{font-size:15px;padding:13px 6px;border-radius:12px}
 .nav-sheet .nav-btns button.end{background:#FDECEC;border-color:#FDECEC}
-.nav-center{position:absolute;z-index:700;right:16px;bottom:200px;width:48px;height:48px;border-radius:50%;background:var(--panel);color:#2F64D6;border:1px solid var(--line);box-shadow:0 2px 8px rgba(0,0,0,.15);display:grid;place-items:center;cursor:pointer}
+.nav-center{position:absolute;z-index:700;right:16px;bottom:270px;width:48px;height:48px;border-radius:50%;background:var(--panel);color:#2F64D6;border:1px solid var(--line);box-shadow:0 2px 8px rgba(0,0,0,.15);display:grid;place-items:center;cursor:pointer}
 .nav-center[hidden]{display:none}
+.nav-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.nav-stats div{display:flex;flex-direction:column;gap:2px;min-width:0}
+.nav-stats span{font-size:11px;font-weight:600;color:var(--ink-2)}
+.nav-stats b{font-family:var(--mono);font-variant-numeric:tabular-nums;font-size:19px;font-weight:600;white-space:nowrap}
 .app[data-screen="nav"] .credit{bottom:auto;top:calc(150px + env(safe-area-inset-top,0px))}
 @media (max-width:820px){
   .app{grid-template-columns:1fr;grid-template-rows:1fr}
@@ -992,6 +996,12 @@ details.how p{margin:8px 0 0}
     </div>
     <button class="nav-center" id="nav-center" hidden aria-label="내 위치로 지도 맞추기"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2V5M12 19V22M2 12H5M19 12H22"/></svg></button>
     <div class="nav-sheet" id="nav-sheet" hidden role="region" aria-label="안내 상태">
+      <div class="nav-stats">
+        <div><span>경과 시간</span><b id="st-time">0:00</b></div>
+        <div><span>이동 거리</span><b id="st-dist">0.00km</b></div>
+        <div><span>남은 거리</span><b id="st-left">—</b></div>
+        <div><span id="st-pace-lbl">페이스</span><b id="st-pace">—</b></div>
+      </div>
       <div class="nav-meta"><span id="nav-left"></span><span id="nav-src"></span></div>
       <div class="nav-bar"><span id="nav-fill"></span></div>
       <div class="nav-btns"><button id="nav-voice" aria-pressed="true">음성 켜짐</button><button id="nav-end" class="end">안내 종료</button></div>
@@ -1550,17 +1560,36 @@ function updateNavUI(){
   const k = n.man.findIndex(m => m.d > n.prog + 3), m = n.man[k], dist = m.d - n.prog;
   $("#nav-turn").textContent = m.icon; $("#nav-text").textContent = m.text; $("#nav-dist").textContent = fmtM(dist);
   $("#nav-fill").style.width = (n.prog/n.total*100).toFixed(1)+"%";
-  $("#nav-left").innerHTML = `남은 <b>${fmtM(left)}</b> · 약 <b>${Math.max(1,Math.round(left/a.mpm))}분</b>`;
+  navStats();
   if (n.done) n.done.setLatLngs(n.pts.slice(0, n.cum.findIndex(c=>c>=n.prog)+1).concat([n.at(n.prog)]));
   if (dist <= 60 && dist > 20 && !n.spoken.has(k+"a")){ n.spoken.add(k+"a"); say(m.icon==="⚑" ? `${fmtM(dist)} 앞 출발점이에요` : `${fmtM(dist)} 앞 ${m.text}`); }
   if (dist <= 20 && !n.spoken.has(k+"b")){ n.spoken.add(k+"b"); n.spoken.add(k+"a"); say(m.icon==="⚑" ? "" : m.text); }
   if (left <= 15 && !n.arrived){
-    n.arrived = true; stopFeed();
+    n.arrived = true; n.tEnd = Date.now(); stopFeed(); navStats();
     $("#nav-turn").textContent = "⚑"; $("#nav-dist").textContent = "도착";
     $("#nav-text").textContent = `${(n.total/1000).toFixed(2)}km · 약 ${Math.round(n.total/a.stride).toLocaleString()}보 완주`;
     $("#nav-fill").style.width = "100%";
     say("출발점에 도착했어요. 수고하셨어요.");
   }
+}
+// 걷는 중 기본 수치: 경과 시간, 이동 거리, 남은 거리, 페이스, 걸음 수, 도착 예정 시각
+function navStats(){
+  const n = nav; if (!n) return;
+  const a = pace();
+  const ms = ((n.tEnd || Date.now()) - n.t0) * (n.speed || 1), sec = Math.floor(ms/1000);
+  const hh = Math.floor(sec/3600), mm = Math.floor(sec%3600/60), ss = sec%60;
+  $("#st-time").textContent = hh ? `${hh}:${String(mm).padStart(2,"0")}:${String(ss).padStart(2,"0")}` : `${mm}:${String(ss).padStart(2,"0")}`;
+  const done = Math.min(n.prog, n.total), left = Math.max(0, n.total - done);
+  $("#st-dist").textContent = (done/1000).toFixed(2) + "km";
+  $("#st-left").textContent = (left/1000).toFixed(2) + "km";
+  // 페이스: 1km에 몇 분 (100m 이상 움직인 뒤부터)
+  let mpm = a.mpm;
+  if (done >= 100 && sec > 0){ mpm = done / (sec/60); const p = sec / (done/1000); $("#st-pace").textContent = `${Math.floor(p/60)}'${String(Math.round(p%60)).padStart(2,"0")}"`; }
+  else $("#st-pace").textContent = "—";
+  const etaMin = Math.max(1, Math.round(left / mpm));
+  const eta = new Date(Date.now() + etaMin*60000 / (n.speed || 1));
+  const steps = Math.round(done / a.stride).toLocaleString();
+  $("#nav-left").innerHTML = n.arrived ? `걸음 약 <b>${steps}</b> · 완주!` : `걸음 약 <b>${steps}</b> · 도착 예정 <b>${String(eta.getHours()).padStart(2,"0")}:${String(eta.getMinutes()).padStart(2,"0")}</b> (약 ${etaMin}분)`;
 }
 function stopFeed(){
   if (!nav) return;
@@ -1573,6 +1602,8 @@ function startNav(src){
   endNav(true);
   if (walker){ walker.remove(); walker = null; }
   nav = buildNav(c);
+  nav.t0 = Date.now(); nav.speed = src === "sim" ? SIM_SPEED : 1;   // 모의 안내는 시간도 배속으로 흐르게
+  nav.tick = setInterval(navStats, 1000);
   drawRoutes();
   nav.done = L.polyline([], {weight:6, color:"#8A94A3", opacity:.9, interactive:false}).addTo(map);
   go("nav"); $("#nav").hidden = false; $("#nav-sheet").hidden = false; $("#nav-center").hidden = false;
@@ -1601,6 +1632,7 @@ function endNav(silent){
   if (!nav) return;
   stopFeed();
   if (nav.lock) nav.lock.release().catch(()=>{});
+  if (nav.tick) clearInterval(nav.tick);
   if (nav.done) nav.done.remove();
   if (window.speechSynthesis) speechSynthesis.cancel();
   nav = null;
